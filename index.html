@@ -1,477 +1,366 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>KlawTax — Client Manager</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>KlawTax — Live Client Manager</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<!-- SheetJS for Excel import -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- Flatpickr calendar -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <style>
-  :root {
-    --bg: #f5f4f0;
-    --surface: #ffffff;
-    --surface2: #f0efe9;
-    --border: #e2e0d8;
-    --text: #1a1917;
-    --text2: #6b6860;
-    --text3: #9d9b94;
-    --accent: #1d4ed8;
-    --accent-light: #eff2ff;
-    --green: #16a34a;
-    --green-light: #f0fdf4;
-    --green-border: #bbf7d0;
-    --red: #dc2626;
-    --red-light: #fff5f5;
-    --red-border: #fecaca;
-    --yellow: #d97706;
-    --yellow-light: #fffbeb;
-    --yellow-border: #fde68a;
-    --orange: #ea580c;
-    --orange-light: #fff7ed;
-    --orange-border: #fed7aa;
-    --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05);
-    --shadow-md: 0 4px 12px rgba(0,0,0,.10), 0 2px 4px rgba(0,0,0,.06);
-    --radius: 10px;
-    --radius-sm: 6px;
-  }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    font-size: 14px;
-    line-height: 1.5;
-    min-height: 100vh;
-  }
+:root{
+  --bg:#f5f4f0;--surface:#fff;--surface2:#f0efe9;--border:#e2e0d8;
+  --text:#1a1917;--text2:#6b6860;--text3:#9d9b94;
+  --accent:#1d4ed8;--accent-light:#eff2ff;
+  --green:#16a34a;--green-light:#f0fdf4;--green-border:#bbf7d0;
+  --red:#dc2626;--red-light:#fff5f5;--red-border:#fecaca;
+  --yellow:#d97706;--yellow-light:#fffbeb;--yellow-border:#fde68a;
+  --orange:#ea580c;--orange-light:#fff7ed;--orange-border:#fed7aa;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.05);
+  --shadow-md:0 4px 20px rgba(0,0,0,.13),0 2px 6px rgba(0,0,0,.07);
+  --radius:10px;--radius-sm:6px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;min-height:100vh;}
 
-  /* ── HEADER ── */
-  header {
-    background: var(--text);
-    color: #fff;
-    padding: 0 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 56px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-  .logo { font-size: 18px; font-weight: 700; letter-spacing: -.3px; }
-  .logo span { color: #60a5fa; }
-  .header-actions { display: flex; gap: 8px; }
-  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: var(--radius-sm); border: none; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 500; transition: all .15s; }
-  .btn-primary { background: var(--accent); color: #fff; }
-  .btn-primary:hover { background: #1e40af; }
-  .btn-ghost { background: rgba(255,255,255,.12); color: #fff; }
-  .btn-ghost:hover { background: rgba(255,255,255,.2); }
-  .btn-sm { padding: 5px 10px; font-size: 12px; }
-  .btn-danger { background: var(--red-light); color: var(--red); border: 1px solid var(--red-border); }
-  .btn-danger:hover { background: #fee2e2; }
-  .btn-edit { background: var(--accent-light); color: var(--accent); border: 1px solid #c7d2fe; }
-  .btn-edit:hover { background: #e0e7ff; }
-  .btn-export { background: var(--green-light); color: var(--green); border: 1px solid var(--green-border); }
-  .btn-export:hover { background: #dcfce7; }
+/* LOGIN */
+.login-screen{
+  display:flex;align-items:center;justify-content:center;
+  min-height:100vh;background:var(--text);padding:20px;
+}
+.login-box{
+  background:#fff;border-radius:16px;padding:40px 36px;
+  width:100%;max-width:380px;text-align:center;
+  box-shadow:0 20px 60px rgba(0,0,0,.3);
+}
+.login-logo{font-size:28px;font-weight:800;margin-bottom:6px;letter-spacing:-.5px;}
+.login-logo span{color:var(--accent);}
+.login-sub{color:var(--text3);font-size:13px;margin-bottom:28px;}
+.login-box input{
+  width:100%;padding:11px 14px;border:1.5px solid var(--border);
+  border-radius:var(--radius-sm);font-family:inherit;font-size:14px;
+  margin-bottom:12px;outline:none;transition:border-color .15s;
+}
+.login-box input:focus{border-color:var(--accent);}
+.login-btn{
+  width:100%;padding:11px;background:var(--accent);color:#fff;
+  border:none;border-radius:var(--radius-sm);font-family:inherit;
+  font-size:14px;font-weight:600;cursor:pointer;transition:background .15s;
+}
+.login-btn:hover{background:#1e40af;}
+.login-err{color:var(--red);font-size:12px;margin-top:8px;display:none;}
+.login-setup{margin-top:20px;padding:14px;background:var(--accent-light);border-radius:var(--radius-sm);text-align:left;font-size:12px;color:var(--text2);}
+.login-setup strong{display:block;margin-bottom:4px;color:var(--accent);}
 
-  /* ── MAIN LAYOUT ── */
-  main { max-width: 1400px; margin: 0 auto; padding: 24px 20px; }
+/* HEADER */
+header{
+  background:var(--text);color:#fff;padding:0 20px;
+  display:flex;align-items:center;justify-content:space-between;
+  height:52px;position:sticky;top:0;z-index:100;
+}
+.logo{font-size:17px;font-weight:700;letter-spacing:-.3px;}
+.logo span{color:#60a5fa;}
+.header-right{display:flex;align-items:center;gap:8px;}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:#4ade80;animation:pulse 2s infinite;}
+.sync-dot.syncing{background:#fbbf24;}
+.sync-dot.error{background:#f87171;animation:none;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+.sync-label{font-size:11px;color:#9ca3af;}
 
-  /* ── DASHBOARD ── */
-  .dashboard {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 12px;
-    margin-bottom: 20px;
-  }
-  .stat-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 16px;
-    box-shadow: var(--shadow);
-  }
-  .stat-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: .6px; color: var(--text3); margin-bottom: 6px; }
-  .stat-value { font-size: 24px; font-weight: 700; color: var(--text); font-family: 'DM Mono', monospace; }
-  .stat-value.green { color: var(--green); }
-  .stat-value.red { color: var(--red); }
-  .stat-value.accent { color: var(--accent); }
-  .stat-value.orange { color: var(--orange); }
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:var(--radius-sm);border:none;cursor:pointer;font-family:inherit;font-size:13px;font-weight:500;transition:all .15s;white-space:nowrap;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{background:#1e40af;}
+.btn-ghost{background:rgba(255,255,255,.12);color:#fff;}
+.btn-ghost:hover{background:rgba(255,255,255,.22);}
+.btn-sm{padding:5px 9px;font-size:12px;}
+.btn-danger{background:var(--red-light);color:var(--red);border:1px solid var(--red-border);}
+.btn-danger:hover{background:#fee2e2;}
+.btn-edit{background:var(--accent-light);color:var(--accent);border:1px solid #c7d2fe;}
+.btn-edit:hover{background:#e0e7ff;}
+.btn-green{background:var(--green-light);color:var(--green);border:1px solid var(--green-border);}
+.btn-green:hover{background:#dcfce7;}
+.btn-yellow{background:var(--yellow-light);color:var(--yellow);border:1px solid var(--yellow-border);}
 
-  /* ── CONTROLS ── */
-  .controls {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 14px 16px;
-    margin-bottom: 16px;
-    box-shadow: var(--shadow);
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    align-items: center;
-  }
-  .search-wrap { position: relative; flex: 1; min-width: 200px; }
-  .search-wrap svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text3); }
-  .search-input {
-    width: 100%;
-    padding: 8px 10px 8px 34px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    font-family: inherit;
-    font-size: 13px;
-    background: var(--bg);
-    color: var(--text);
-    outline: none;
-    transition: border-color .15s;
-  }
-  .search-input:focus { border-color: var(--accent); }
-  select.filter-select {
-    padding: 8px 10px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    font-family: inherit;
-    font-size: 13px;
-    background: var(--bg);
-    color: var(--text);
-    outline: none;
-    cursor: pointer;
-  }
-  select.filter-select:focus { border-color: var(--accent); }
+/* MAIN */
+main{max-width:1500px;margin:0 auto;padding:20px 16px;}
 
-  /* ── FILTER BUTTONS ── */
-  .filter-btns {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 16px;
-  }
-  .filter-btn {
-    padding: 7px 13px;
-    border-radius: 20px;
-    border: 1.5px solid var(--border);
-    background: var(--surface);
-    color: var(--text2);
-    font-family: inherit;
-    font-size: 12px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all .15s;
-    white-space: nowrap;
-  }
-  .filter-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .filter-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
-  .filter-btn.active.red { background: var(--red); border-color: var(--red); }
-  .filter-btn.active.orange { background: var(--orange); border-color: var(--orange); }
-  .filter-btn.active.yellow { background: var(--yellow); border-color: var(--yellow); }
+/* DASHBOARD */
+.dashboard{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:18px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow);}
+.stat-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);margin-bottom:5px;}
+.stat-value{font-size:22px;font-weight:700;font-family:'DM Mono',monospace;}
+.stat-value.green{color:var(--green);}
+.stat-value.red{color:var(--red);}
+.stat-value.accent{color:var(--accent);}
+.stat-value.orange{color:var(--orange);}
 
-  /* ── TABLE ── */
-  .table-wrap {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    overflow: hidden;
-  }
-  .table-header {
-    padding: 14px 16px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-  }
-  .table-title { font-weight: 600; font-size: 14px; }
-  .record-count { font-size: 12px; color: var(--text3); font-family: 'DM Mono', monospace; }
-  table { width: 100%; border-collapse: collapse; }
-  thead th {
-    background: var(--surface2);
-    padding: 10px 12px;
-    text-align: left;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: .5px;
-    color: var(--text3);
-    white-space: nowrap;
-    border-bottom: 1px solid var(--border);
-  }
-  tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
-  tbody tr:last-child { border-bottom: none; }
-  tbody tr:hover { background: var(--surface2); }
-  td { padding: 10px 12px; font-size: 13px; vertical-align: middle; }
-  .client-name { font-weight: 600; }
-  .client-phone { color: var(--text2); font-size: 12px; font-family: 'DM Mono', monospace; }
-  .amount { font-family: 'DM Mono', monospace; font-weight: 500; }
-  .balance-red { color: var(--red); font-weight: 600; }
-  .balance-zero { color: var(--green); font-weight: 600; }
+/* CONTROLS */
+.controls{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:14px;box-shadow:var(--shadow);display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+.search-wrap{position:relative;flex:1;min-width:180px;}
+.search-wrap svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--text3);}
+.search-input{width:100%;padding:8px 8px 8px 30px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;font-size:13px;background:var(--bg);color:var(--text);outline:none;transition:border-color .15s;}
+.search-input:focus{border-color:var(--accent);}
+select.fs{padding:7px 10px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;font-size:13px;background:var(--bg);color:var(--text);outline:none;cursor:pointer;}
+select.fs:focus{border-color:var(--accent);}
+.date-range-wrap{display:flex;gap:6px;align-items:center;}
+.date-range-wrap input{padding:7px 10px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;font-size:13px;background:var(--bg);color:var(--text);outline:none;width:130px;}
+.date-range-wrap input:focus{border-color:var(--accent);}
+.date-range-wrap span{color:var(--text3);font-size:12px;}
 
-  /* ── STATUS BADGES ── */
-  .badge {
-    display: inline-block;
-    padding: 3px 9px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 600;
-    white-space: nowrap;
-  }
-  .badge-pending { background: var(--red-light); color: var(--red); border: 1px solid var(--red-border); }
-  .badge-partial { background: var(--yellow-light); color: var(--yellow); border: 1px solid var(--yellow-border); }
-  .badge-paid { background: var(--green-light); color: var(--green); border: 1px solid var(--green-border); }
-  .badge-progress { background: var(--accent-light); color: var(--accent); border: 1px solid #c7d2fe; }
-  .badge-completed { background: var(--green-light); color: var(--green); border: 1px solid var(--green-border); }
-  .badge-work-pending { background: var(--orange-light); color: var(--orange); border: 1px solid var(--orange-border); }
+/* FILTER PILLS */
+.filter-btns{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px;}
+.filter-btn{padding:6px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface);color:var(--text2);font-family:inherit;font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.filter-btn:hover{border-color:var(--accent);color:var(--accent);}
+.filter-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.filter-btn.active-red{background:var(--red);color:#fff;border-color:var(--red);}
+.filter-btn.active-orange{background:var(--orange);color:#fff;border-color:var(--orange);}
+.filter-btn.active-yellow{background:var(--yellow);color:#fff;border-color:var(--yellow);}
+.filter-btn.active-green{background:var(--green);color:#fff;border-color:var(--green);}
 
-  /* ── ROW HIGHLIGHTS ── */
-  tr.row-red { background: #fff5f5 !important; }
-  tr.row-yellow { background: #fffbeb !important; }
-  tr.row-orange { background: #fff7ed !important; }
-  tr.row-green { background: #f0fdf4 !important; }
-  tr.row-red:hover { background: #fee2e2 !important; }
-  tr.row-yellow:hover { background: #fef3c7 !important; }
-  tr.row-orange:hover { background: #ffedd5 !important; }
-  tr.row-green:hover { background: #dcfce7 !important; }
+/* TABLE */
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
+.table-header{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;}
+.table-title{font-weight:700;font-size:14px;}
+.table-actions{display:flex;gap:7px;align-items:center;}
+.record-count{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;}
+.table-scroll{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+thead th{background:var(--surface2);padding:9px 11px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);white-space:nowrap;border-bottom:1px solid var(--border);}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s;}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{filter:brightness(.97);}
+td{padding:9px 11px;font-size:13px;vertical-align:middle;}
+.client-name{font-weight:600;font-size:13px;}
+.client-phone{color:var(--text2);font-size:11px;font-family:'DM Mono',monospace;}
+.amount{font-family:'DM Mono',monospace;font-weight:500;}
+.balance-red{color:var(--red);font-weight:700;}
+.balance-zero{color:var(--green);font-weight:700;}
 
-  .actions-cell { display: flex; gap: 6px; }
+/* BADGES */
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap;}
+.badge-pending{background:var(--red-light);color:var(--red);border:1px solid var(--red-border);}
+.badge-partial{background:var(--yellow-light);color:var(--yellow);border:1px solid var(--yellow-border);}
+.badge-paid{background:var(--green-light);color:var(--green);border:1px solid var(--green-border);}
+.badge-progress{background:var(--accent-light);color:var(--accent);border:1px solid #c7d2fe;}
+.badge-completed{background:var(--green-light);color:var(--green);border:1px solid var(--green-border);}
+.badge-work-pending{background:var(--orange-light);color:var(--orange);border:1px solid var(--orange-border);}
 
-  /* ── EMPTY STATE ── */
-  .empty-state {
-    text-align: center;
-    padding: 60px 20px;
-    color: var(--text3);
-  }
-  .empty-icon { font-size: 40px; margin-bottom: 12px; }
-  .empty-state h3 { font-size: 15px; color: var(--text2); margin-bottom: 4px; }
+/* ROW COLORS */
+tr.row-red{background:#fff5f5;}
+tr.row-yellow{background:#fffbeb;}
+tr.row-orange{background:#fff7ed;}
+tr.row-green{background:#f0fdf4;}
 
-  /* ── MODAL ── */
-  .modal-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,.45);
-    z-index: 200;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-  }
-  .modal-overlay.open { display: flex; }
-  .modal {
-    background: var(--surface);
-    border-radius: 14px;
-    box-shadow: var(--shadow-md);
-    width: 100%;
-    max-width: 560px;
-    max-height: 90vh;
-    overflow-y: auto;
-    animation: slideUp .2s ease;
-  }
-  @keyframes slideUp { from { transform: translateY(16px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-  .modal-head {
-    padding: 20px 24px 16px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .modal-title { font-size: 16px; font-weight: 700; }
-  .modal-close {
-    background: var(--surface2);
-    border: none;
-    border-radius: 6px;
-    width: 30px;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-size: 16px;
-    color: var(--text2);
-    transition: background .15s;
-  }
-  .modal-close:hover { background: var(--border); }
-  .modal-body { padding: 20px 24px; }
-  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  .form-group { display: flex; flex-direction: column; gap: 5px; }
-  .form-group.full { grid-column: 1 / -1; }
-  label { font-size: 12px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: .4px; }
-  input, textarea, select {
-    padding: 9px 11px;
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius-sm);
-    font-family: inherit;
-    font-size: 13px;
-    color: var(--text);
-    background: var(--bg);
-    outline: none;
-    transition: border-color .15s;
-    width: 100%;
-  }
-  input:focus, textarea:focus, select:focus { border-color: var(--accent); background: #fff; }
-  textarea { resize: vertical; min-height: 68px; }
-  .balance-display {
-    padding: 9px 11px;
-    background: var(--surface2);
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius-sm);
-    font-family: 'DM Mono', monospace;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text);
-  }
-  .modal-foot {
-    padding: 16px 24px;
-    border-top: 1px solid var(--border);
-    display: flex;
-    gap: 8px;
-    justify-content: flex-end;
-  }
-  .btn-cancel { background: var(--surface2); color: var(--text2); border: 1px solid var(--border); }
-  .btn-cancel:hover { background: var(--border); }
+.followup-today{color:var(--yellow);font-weight:700;font-size:12px;}
+.followup-overdue{color:var(--orange);font-weight:700;font-size:12px;}
+.followup-normal{color:var(--text2);font-size:12px;}
+.followup-time{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;}
 
-  /* ── REMINDER MODAL ── */
-  .reminder-modal {
-    background: var(--surface);
-    border-radius: 14px;
-    box-shadow: var(--shadow-md);
-    width: 100%;
-    max-width: 460px;
-    animation: slideUp .2s ease;
-  }
-  .reminder-head {
-    padding: 20px 24px 16px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .reminder-title { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
-  .reminder-body { padding: 16px 24px; max-height: 60vh; overflow-y: auto; }
-  .reminder-section-title {
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: .6px;
-    color: var(--text3);
-    margin: 12px 0 8px;
-  }
-  .reminder-section-title:first-child { margin-top: 0; }
-  .reminder-item {
-    padding: 10px 12px;
-    border-radius: var(--radius-sm);
-    margin-bottom: 6px;
-    border: 1px solid;
-  }
-  .reminder-item.today { background: var(--yellow-light); border-color: var(--yellow-border); }
-  .reminder-item.overdue { background: var(--orange-light); border-color: var(--orange-border); }
-  .reminder-name { font-weight: 600; font-size: 13px; }
-  .reminder-detail { font-size: 12px; color: var(--text2); margin-top: 2px; }
-  .reminder-foot { padding: 14px 24px; border-top: 1px solid var(--border); }
+.actions-cell{display:flex;gap:5px;}
 
-  /* ── RESPONSIVE ── */
-  .desktop-only { display: table-cell; }
-  @media (max-width: 900px) {
-    .desktop-only { display: none; }
-    .form-grid { grid-template-columns: 1fr; }
-    .form-group.full { grid-column: 1; }
-    table { display: block; overflow-x: auto; }
-  }
-  @media (max-width: 600px) {
-    main { padding: 16px 12px; }
-    header { padding: 0 14px; }
-    .dashboard { grid-template-columns: repeat(2, 1fr); }
-    .stat-value { font-size: 20px; }
-  }
+/* EMPTY */
+.empty-state{text-align:center;padding:50px 20px;color:var(--text3);}
+.empty-icon{font-size:38px;margin-bottom:10px;}
+.empty-state h3{font-size:15px;color:var(--text2);margin-bottom:4px;}
 
-  /* ── SCROLL ── */
-  ::-webkit-scrollbar { width: 6px; height: 6px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center;padding:16px;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--surface);border-radius:14px;box-shadow:var(--shadow-md);width:100%;max-width:580px;max-height:93vh;overflow-y:auto;animation:slideUp .2s ease;}
+@keyframes slideUp{from{transform:translateY(16px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.modal-head{padding:18px 22px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;z-index:1;}
+.modal-title{font-size:16px;font-weight:700;}
+.modal-close{background:var(--surface2);border:none;border-radius:6px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;color:var(--text2);transition:background .15s;}
+.modal-close:hover{background:var(--border);}
+.modal-body{padding:18px 22px;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.form-group{display:flex;flex-direction:column;gap:4px;}
+.form-group.full{grid-column:1/-1;}
+.form-group.span3{grid-column:span 2;}
+label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;}
+input,textarea,select{padding:8px 10px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;font-size:13px;color:var(--text);background:var(--bg);outline:none;transition:border-color .15s;width:100%;}
+input:focus,textarea:focus,select:focus{border-color:var(--accent);background:#fff;}
+textarea{resize:vertical;min-height:60px;}
+.balance-display{padding:8px 10px;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:'DM Mono',monospace;font-size:14px;font-weight:700;}
+.modal-foot{padding:14px 22px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;position:sticky;bottom:0;background:#fff;}
+.btn-cancel{background:var(--surface2);color:var(--text2);border:1px solid var(--border);}
+.btn-cancel:hover{background:var(--border);}
 
-  /* ── FOLLOW-UP DATE COLOR ── */
-  .followup-today { color: var(--yellow); font-weight: 600; }
-  .followup-overdue { color: var(--orange); font-weight: 600; }
-  .followup-normal { color: var(--text2); }
+/* REMINDER MODAL */
+.reminder-modal{background:var(--surface);border-radius:14px;box-shadow:var(--shadow-md);width:100%;max-width:440px;animation:slideUp .2s ease;}
+.reminder-head{padding:18px 22px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.reminder-title{font-size:15px;font-weight:700;}
+.reminder-body{padding:14px 22px;max-height:55vh;overflow-y:auto;}
+.reminder-section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);margin:10px 0 6px;}
+.reminder-section-title:first-child{margin-top:0;}
+.reminder-item{padding:9px 11px;border-radius:var(--radius-sm);margin-bottom:5px;border:1px solid;}
+.reminder-item.today{background:var(--yellow-light);border-color:var(--yellow-border);}
+.reminder-item.overdue{background:var(--orange-light);border-color:var(--orange-border);}
+.reminder-name{font-weight:600;font-size:13px;}
+.reminder-detail{font-size:11px;color:var(--text2);margin-top:2px;}
+.reminder-foot{padding:12px 22px;border-top:1px solid var(--border);}
 
-  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
-  .dot-red { background: var(--red); }
-  .dot-yellow { background: var(--yellow); }
-  .dot-orange { background: var(--orange); }
-  .dot-green { background: var(--green); }
+/* IMPORT MODAL */
+.import-modal{background:var(--surface);border-radius:14px;box-shadow:var(--shadow-md);width:100%;max-width:520px;animation:slideUp .2s ease;}
+.dropzone{border:2px dashed var(--border);border-radius:var(--radius);padding:40px 20px;text-align:center;cursor:pointer;transition:all .15s;background:var(--surface2);}
+.dropzone:hover,.dropzone.drag{border-color:var(--accent);background:var(--accent-light);}
+.dropzone-icon{font-size:36px;margin-bottom:10px;}
+.dropzone-text{font-size:14px;font-weight:500;color:var(--text2);}
+.dropzone-sub{font-size:12px;color:var(--text3);margin-top:4px;}
+.import-preview{margin-top:14px;max-height:200px;overflow-y:auto;}
+.import-preview table{font-size:11px;}
+.import-preview td,.import-preview th{padding:4px 8px;}
+.import-info{background:var(--accent-light);border:1px solid #c7d2fe;border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;color:var(--accent);margin-bottom:12px;}
+.import-info strong{display:block;margin-bottom:3px;}
+
+/* CHANGE PASSWORD */
+.change-pwd-modal{background:var(--surface);border-radius:14px;box-shadow:var(--shadow-md);width:100%;max-width:360px;animation:slideUp .2s ease;}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--text);color:#fff;padding:11px 18px;border-radius:var(--radius-sm);font-size:13px;font-weight:500;z-index:9999;animation:slideUp .2s ease;display:flex;align-items:center;gap:8px;box-shadow:var(--shadow-md);}
+.toast.success{background:var(--green);}
+.toast.error{background:var(--red);}
+.toast.warn{background:var(--orange);}
+
+/* ALARM BANNER */
+.alarm-banner{position:fixed;top:0;left:0;right:0;z-index:9998;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;animation:slideDown .3s ease;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+@keyframes slideDown{from{transform:translateY(-100%);}to{transform:translateY(0);}}
+.alarm-text{font-size:14px;font-weight:600;}
+.alarm-detail{font-size:12px;opacity:.85;margin-top:2px;}
+.alarm-close{background:rgba(255,255,255,.2);border:none;color:#fff;padding:5px 12px;border-radius:5px;cursor:pointer;font-family:inherit;font-size:13px;}
+
+/* RESPONSIVE */
+.d-none-sm{display:table-cell;}
+@media(max-width:900px){
+  .d-none-sm{display:none;}
+  .form-grid{grid-template-columns:1fr;}
+  .form-group.full,.form-group.span3{grid-column:1;}
+}
+@media(max-width:600px){
+  main{padding:14px 10px;}
+  header{padding:0 12px;}
+  .dashboard{grid-template-columns:repeat(2,1fr);}
+  .stat-value{font-size:19px;}
+  .header-right .sync-label{display:none;}
+  .btn-ghost span{display:none;}
+}
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+
+/* flatpickr override */
+.flatpickr-calendar{font-family:'DM Sans',sans-serif!important;}
 </style>
 </head>
 <body>
 
-<!-- HEADER -->
+<!-- ══════════════════════════ LOGIN ══════════════════════════ -->
+<div id="loginScreen" class="login-screen">
+  <div class="login-box">
+    <div class="login-logo">Klaw<span>Tax</span></div>
+    <div class="login-sub">Secure Client Manager</div>
+    <input type="text" id="loginUser" placeholder="Username" autocomplete="username"/>
+    <input type="password" id="loginPass" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"/>
+    <button class="login-btn" onclick="doLogin()">Sign In →</button>
+    <div class="login-err" id="loginErr">❌ Incorrect credentials. Try again.</div>
+    <div class="login-setup" id="setupHint" style="display:none">
+      <strong>⚙️ Firebase Not Configured</strong>
+      Open the HTML file, find <code>FIREBASE CONFIG</code> and paste your Firebase project credentials. See instructions in the code comments.
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ APP ══════════════════════════ -->
+<div id="appScreen" style="display:none">
+
 <header>
   <div class="logo">Klaw<span>Tax</span></div>
-  <div class="header-actions">
-    <button class="btn btn-ghost btn-sm" onclick="exportCSV()">
-      ⬇ Export CSV
-    </button>
-    <button class="btn btn-primary btn-sm" onclick="openModal()">
-      + Add Client
-    </button>
+  <div class="header-right">
+    <div class="sync-dot" id="syncDot" title="Live sync status"></div>
+    <span class="sync-label" id="syncLabel">Live</span>
+    <button class="btn btn-ghost btn-sm" onclick="openImport()">📥 <span>Import Excel</span></button>
+    <button class="btn btn-ghost btn-sm" onclick="exportCSV()">⬇ <span>Export</span></button>
+    <button class="btn btn-ghost btn-sm" onclick="openChangePwd()">🔑</button>
+    <button class="btn btn-ghost btn-sm" onclick="doLogout()">⎋ <span>Logout</span></button>
+    <button class="btn btn-primary btn-sm" onclick="openModal()">+ Add Client</button>
   </div>
 </header>
 
-<!-- MAIN -->
 <main>
-
   <!-- DASHBOARD -->
   <div class="dashboard" id="dashboard"></div>
 
   <!-- CONTROLS -->
   <div class="controls">
     <div class="search-wrap">
-      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       <input class="search-input" id="searchInput" type="text" placeholder="Search name, phone, service…" oninput="renderTable()"/>
     </div>
-    <select class="filter-select" id="dateFilter" onchange="renderTable()">
-      <option value="">All Dates</option>
+    <select class="fs" id="workFilter" onchange="renderTable()">
+      <option value="">All Work Status</option>
+      <option>Pending</option>
+      <option>In Progress</option>
+      <option>Completed</option>
+    </select>
+    <select class="fs" id="payFilter" onchange="renderTable()">
+      <option value="">All Payment</option>
+      <option>Pending</option>
+      <option>Partial</option>
+      <option>Paid</option>
+    </select>
+    <div class="date-range-wrap">
+      <input type="text" id="dateFrom" placeholder="From date" readonly/>
+      <span>→</span>
+      <input type="text" id="dateTo" placeholder="To date" readonly/>
+      <button class="btn btn-sm btn-yellow" onclick="clearDateRange()" title="Clear dates">✕</button>
+    </div>
+    <select class="fs" id="quickDate" onchange="applyQuickDate()">
+      <option value="">Quick Date</option>
       <option value="today">Today's Follow-ups</option>
       <option value="yesterday">Yesterday</option>
+      <option value="week">This Week</option>
       <option value="month">This Month</option>
-    </select>
-    <select class="filter-select" id="workFilter" onchange="renderTable()">
-      <option value="">All Work Status</option>
-      <option value="Pending">Work Pending</option>
-      <option value="In Progress">In Progress</option>
-      <option value="Completed">Completed</option>
-    </select>
-    <select class="filter-select" id="payFilter" onchange="renderTable()">
-      <option value="">All Payment Status</option>
-      <option value="Pending">Payment Pending</option>
-      <option value="Partial">Partial</option>
-      <option value="Paid">Paid</option>
+      <option value="overdue">Overdue</option>
     </select>
   </div>
 
-  <!-- SMART FILTER BUTTONS -->
+  <!-- SMART FILTERS -->
   <div class="filter-btns">
-    <button class="filter-btn" id="fb-all" onclick="setSmartFilter('all')">All Records</button>
-    <button class="filter-btn" id="fb-work-done-pay-pending" onclick="setSmartFilter('work-done-pay-pending')">
-      <span class="dot dot-red"></span>Work Done + Pay Pending
-    </button>
-    <button class="filter-btn" id="fb-pay-done-work-pending" onclick="setSmartFilter('pay-done-work-pending')">
-      <span class="dot dot-orange"></span>Paid + Work Pending
-    </button>
-    <button class="filter-btn" id="fb-follow-today" onclick="setSmartFilter('follow-today')">
-      <span class="dot dot-yellow"></span>Follow-up Today
-    </button>
-    <button class="filter-btn" id="fb-overdue" onclick="setSmartFilter('overdue')">
-      <span class="dot dot-orange"></span>Overdue / Missed
-    </button>
+    <button class="filter-btn active" id="fb-all" onclick="setFilter('all')">All Records</button>
+    <button class="filter-btn" id="fb-work-done-pay-pending" onclick="setFilter('work-done-pay-pending')">🔴 Work Done + Pay Pending</button>
+    <button class="filter-btn" id="fb-pay-done-work-pending" onclick="setFilter('pay-done-work-pending')">🟠 Paid + Work Pending</button>
+    <button class="filter-btn" id="fb-follow-today" onclick="setFilter('follow-today')">🟡 Follow-up Today</button>
+    <button class="filter-btn" id="fb-overdue" onclick="setFilter('overdue')">⚠ Overdue</button>
+    <button class="filter-btn" id="fb-done" onclick="setFilter('done')">✅ Completed + Paid</button>
   </div>
 
   <!-- TABLE -->
   <div class="table-wrap">
     <div class="table-header">
-      <span class="table-title">Client Records</span>
-      <span class="record-count" id="recordCount">0 records</span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="table-title">Client Records</span>
+        <span class="record-count" id="recordCount">Loading…</span>
+      </div>
+      <div class="table-actions">
+        <span id="lastUpdated" style="font-size:11px;color:var(--text3);"></span>
+      </div>
     </div>
-    <div id="tableContainer"></div>
+    <div class="table-scroll" id="tableContainer">
+      <div class="empty-state"><div class="empty-icon">⏳</div><h3>Loading records…</h3></div>
+    </div>
   </div>
 </main>
+</div>
 
-<!-- ADD/EDIT MODAL -->
+<!-- ══════════════════════════ MODALS ══════════════════════════ -->
+
+<!-- ADD/EDIT RECORD -->
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal">
     <div class="modal-head">
@@ -490,7 +379,7 @@
         </div>
         <div class="form-group full">
           <label>Service</label>
-          <input type="text" id="f-service" placeholder="e.g. ITR Filing, GST Return…"/>
+          <input type="text" id="f-service" placeholder="e.g. ITR Filing, GST Return, TDS…"/>
         </div>
         <div class="form-group">
           <label>Total Amount (₹)</label>
@@ -501,8 +390,8 @@
           <input type="number" id="f-received" placeholder="0" min="0" oninput="calcBalance()"/>
         </div>
         <div class="form-group">
-          <label>Balance (₹)</label>
-          <div class="balance-display" id="f-balance">0</div>
+          <label>Balance (₹) — Auto</label>
+          <div class="balance-display" id="f-balance">₹0</div>
         </div>
         <div class="form-group">
           <label>Work Status</label>
@@ -520,9 +409,13 @@
             <option>Paid</option>
           </select>
         </div>
-        <div class="form-group full">
+        <div class="form-group">
           <label>Next Follow-up Date</label>
-          <input type="date" id="f-followup"/>
+          <input type="text" id="f-followup" placeholder="Pick date" readonly/>
+        </div>
+        <div class="form-group">
+          <label>Reminder Time</label>
+          <input type="time" id="f-time" placeholder="HH:MM"/>
         </div>
         <div class="form-group full">
           <label>Notes</label>
@@ -532,16 +425,16 @@
     </div>
     <div class="modal-foot">
       <button class="btn btn-cancel" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="saveRecord()">Save Client</button>
+      <button class="btn btn-primary" onclick="saveRecord()">💾 Save Client</button>
     </div>
   </div>
 </div>
 
-<!-- REMINDER MODAL -->
+<!-- REMINDER POPUP -->
 <div class="modal-overlay" id="reminderOverlay">
   <div class="reminder-modal">
     <div class="reminder-head">
-      <span class="reminder-title">🔔 Follow-up Reminders</span>
+      <span class="reminder-title">🔔 Today's Reminders</span>
       <button class="modal-close" onclick="closeReminder()">✕</button>
     </div>
     <div class="reminder-body" id="reminderBody"></div>
@@ -551,354 +444,733 @@
   </div>
 </div>
 
+<!-- IMPORT MODAL -->
+<div class="modal-overlay" id="importOverlay">
+  <div class="import-modal">
+    <div class="modal-head">
+      <span class="modal-title">📥 Import from Excel / CSV</span>
+      <button class="modal-close" onclick="closeImport()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="import-info">
+        <strong>📋 Required Excel Columns (in order):</strong>
+        Name | Phone | Service | Total Amount | Received Amount | Work Status | Payment Status | Follow-up Date (YYYY-MM-DD) | Reminder Time (HH:MM) | Notes
+        <br/><br/>First row = header row (will be skipped automatically).
+      </div>
+      <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event)">
+        <div class="dropzone-icon">📂</div>
+        <div class="dropzone-text">Click to select or drag & drop file</div>
+        <div class="dropzone-sub">.xlsx, .xls, .csv supported</div>
+      </div>
+      <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleFile(event)"/>
+      <div id="importPreview"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-cancel" onclick="closeImport()">Cancel</button>
+      <button class="btn btn-primary" id="importBtn" onclick="doImport()" style="display:none">✅ Import Records</button>
+    </div>
+  </div>
+</div>
+
+<!-- CHANGE PASSWORD MODAL -->
+<div class="modal-overlay" id="pwdOverlay">
+  <div class="change-pwd-modal">
+    <div class="modal-head">
+      <span class="modal-title">🔑 Change Password</span>
+      <button class="modal-close" onclick="closePwd()">✕</button>
+    </div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:10px;">
+      <div class="form-group">
+        <label>Current Password</label>
+        <input type="password" id="pwd-current" placeholder="Enter current password"/>
+      </div>
+      <div class="form-group">
+        <label>New Username</label>
+        <input type="text" id="pwd-user" placeholder="New username"/>
+      </div>
+      <div class="form-group">
+        <label>New Password</label>
+        <input type="password" id="pwd-new" placeholder="New password (min 6 chars)"/>
+      </div>
+      <div class="form-group">
+        <label>Confirm New Password</label>
+        <input type="password" id="pwd-confirm" placeholder="Repeat new password"/>
+      </div>
+      <div id="pwdErr" style="color:var(--red);font-size:12px;display:none;"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-cancel" onclick="closePwd()">Cancel</button>
+      <button class="btn btn-primary" onclick="doChangePwd()">Update Credentials</button>
+    </div>
+  </div>
+</div>
+
+<!-- ALARM BANNER placeholder -->
+<div id="alarmBanner" style="display:none"></div>
+
+<!-- ══════════════════════════ SCRIPT ══════════════════════════ -->
 <script>
-// ── DATA ──
-let records = JSON.parse(localStorage.getItem('klawtax_records') || '[]');
+/* ════════════════════════════════════════════
+   ⚙️  FIREBASE CONFIG — REPLACE WITH YOUR OWN
+   ════════════════════════════════════════════
+   Steps:
+   1. Go to https://console.firebase.google.com
+   2. Create a new project (e.g. "klawtax")
+   3. Click "Add App" → Web → Register
+   4. Copy the firebaseConfig object and paste below
+   5. Go to Realtime Database → Create database → Start in test mode
+   6. Copy the database URL into databaseURL below
+   ════════════════════════════════════════════ */
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+/* ════════════════════════════
+   🔐 CREDENTIALS (stored in Firebase once configured)
+   Default first login: admin / klawtax123
+   Change after first login using the 🔑 button
+   ════════════════════════════ */
+const DEFAULT_USER = "admin";
+const DEFAULT_PASS = "klawtax123";
+
+/* ════════════════════════════ */
+
+let db = null;
+let records = {};       // key→record (live from Firebase)
+let importData = [];
 let editingId = null;
 let smartFilter = 'all';
+let fpFollowup = null;
+let fpFrom = null;
+let fpTo = null;
+let alarmTimers = [];
+let reminderShown = false;
+const CRED_KEY = 'klawtax_creds';
 
-function save() {
-  localStorage.setItem('klawtax_records', JSON.stringify(records));
+// ── FIREBASE INIT ──
+function initFirebase() {
+  try {
+    const app = firebase.initializeApp(firebaseConfig);
+    db = firebase.database(app);
+    setSyncStatus('syncing');
+    // Test connection
+    db.ref('.info/connected').on('value', snap => {
+      if (snap.val()) setSyncStatus('live');
+      else setSyncStatus('error');
+    });
+    return true;
+  } catch(e) {
+    console.warn('Firebase init failed:', e);
+    return false;
+  }
 }
 
-function today() {
-  return new Date().toISOString().split('T')[0];
+function isFirebaseConfigured() {
+  return firebaseConfig.apiKey && firebaseConfig.apiKey !== 'YOUR_API_KEY';
 }
 
-function yesterday() {
-  const d = new Date();
-  d.setDate(d.getDate() - 1);
-  return d.toISOString().split('T')[0];
+function setSyncStatus(state) {
+  const dot = document.getElementById('syncDot');
+  const label = document.getElementById('syncLabel');
+  if (!dot) return;
+  dot.className = 'sync-dot' + (state === 'error' ? ' error' : state === 'syncing' ? ' syncing' : '');
+  label.textContent = state === 'live' ? 'Live ✓' : state === 'syncing' ? 'Syncing…' : 'Offline';
 }
 
-function monthStart() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-01`;
+// ── AUTH ──
+function getCreds() {
+  try {
+    const c = JSON.parse(localStorage.getItem(CRED_KEY));
+    return c || { user: DEFAULT_USER, pass: DEFAULT_PASS };
+  } catch { return { user: DEFAULT_USER, pass: DEFAULT_PASS }; }
 }
 
-function monthEnd() {
-  const d = new Date();
-  const last = new Date(d.getFullYear(), d.getMonth()+1, 0);
-  return last.toISOString().split('T')[0];
+function doLogin() {
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  const creds = getCreds();
+  if (u === creds.user && p === creds.pass) {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('appScreen').style.display = 'block';
+    document.getElementById('loginErr').style.display = 'none';
+    initApp();
+  } else {
+    document.getElementById('loginErr').style.display = 'block';
+    document.getElementById('loginPass').value = '';
+  }
+}
+
+function doLogout() {
+  if (!confirm('Log out?')) return;
+  document.getElementById('appScreen').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+}
+
+function openChangePwd() {
+  document.getElementById('pwd-current').value = '';
+  document.getElementById('pwd-user').value = '';
+  document.getElementById('pwd-new').value = '';
+  document.getElementById('pwd-confirm').value = '';
+  document.getElementById('pwdErr').style.display = 'none';
+  document.getElementById('pwdOverlay').classList.add('open');
+}
+function closePwd() { document.getElementById('pwdOverlay').classList.remove('open'); }
+
+function doChangePwd() {
+  const cur = document.getElementById('pwd-current').value;
+  const newU = document.getElementById('pwd-user').value.trim();
+  const newP = document.getElementById('pwd-new').value;
+  const conf = document.getElementById('pwd-confirm').value;
+  const creds = getCreds();
+  const err = document.getElementById('pwdErr');
+  if (cur !== creds.pass) { err.textContent = '❌ Current password is wrong.'; err.style.display = 'block'; return; }
+  if (!newU) { err.textContent = '❌ Username cannot be empty.'; err.style.display = 'block'; return; }
+  if (newP.length < 6) { err.textContent = '❌ Password must be at least 6 characters.'; err.style.display = 'block'; return; }
+  if (newP !== conf) { err.textContent = '❌ Passwords do not match.'; err.style.display = 'block'; return; }
+  localStorage.setItem(CRED_KEY, JSON.stringify({ user: newU, pass: newP }));
+  closePwd();
+  showToast('✅ Credentials updated!', 'success');
+}
+
+// ── APP INIT ──
+function initApp() {
+  initCalendars();
+  if (isFirebaseConfigured() && initFirebase()) {
+    // Live listener
+    db.ref('records').on('value', snap => {
+      records = snap.val() || {};
+      renderDashboard();
+      renderTable();
+      if (!reminderShown) { showReminderPopup(); reminderShown = true; }
+      scheduleAlarms();
+      document.getElementById('lastUpdated').textContent = 'Updated: ' + new Date().toLocaleTimeString('en-IN');
+    }, err => {
+      setSyncStatus('error');
+      showToast('⚠ Firebase error: ' + err.message, 'error');
+    });
+  } else {
+    // Fallback to localStorage
+    if (!isFirebaseConfigured()) {
+      document.getElementById('setupHint').style.display = 'block';
+      showToast('⚠ Firebase not configured — using local storage', 'warn');
+    }
+    setSyncStatus('error');
+    const saved = JSON.parse(localStorage.getItem('klawtax_records_v2') || '{}');
+    records = saved;
+    renderDashboard();
+    renderTable();
+    showReminderPopup();
+    scheduleAlarms();
+  }
+}
+
+function saveLocal() {
+  localStorage.setItem('klawtax_records_v2', JSON.stringify(records));
+}
+
+// ── DATES ──
+function todayStr() { return new Date().toISOString().split('T')[0]; }
+function yesterdayStr() { const d=new Date(); d.setDate(d.getDate()-1); return d.toISOString().split('T')[0]; }
+function weekStartStr() { const d=new Date(); d.setDate(d.getDate()-d.getDay()); return d.toISOString().split('T')[0]; }
+function monthStartStr() { const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-01`; }
+function monthEndStr() { const d=new Date(); const l=new Date(d.getFullYear(),d.getMonth()+1,0); return l.toISOString().split('T')[0]; }
+function nowStr() { return new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true}); }
+
+// ── CALENDARS (Flatpickr) ──
+function initCalendars() {
+  fpFollowup = flatpickr('#f-followup', {
+    dateFormat: 'Y-m-d',
+    disableMobile: false,
+    allowInput: false,
+    minDate: null
+  });
+  fpFrom = flatpickr('#dateFrom', {
+    dateFormat: 'Y-m-d',
+    onChange: () => { document.getElementById('quickDate').value=''; renderTable(); }
+  });
+  fpTo = flatpickr('#dateTo', {
+    dateFormat: 'Y-m-d',
+    onChange: () => { document.getElementById('quickDate').value=''; renderTable(); }
+  });
+}
+
+function clearDateRange() {
+  if(fpFrom) fpFrom.clear();
+  if(fpTo) fpTo.clear();
+  document.getElementById('quickDate').value = '';
+  renderTable();
+}
+
+function applyQuickDate() {
+  const v = document.getElementById('quickDate').value;
+  if(fpFrom) fpFrom.clear();
+  if(fpTo) fpTo.clear();
+  smartFilter = 'all';
+  document.querySelectorAll('.filter-btn').forEach(b => { b.className = 'filter-btn'; });
+  document.getElementById('fb-all').className = 'filter-btn active';
+  if (!v) { renderTable(); return; }
+  const td = todayStr(), yd = yesterdayStr(), ws = weekStartStr(), ms = monthStartStr(), me = monthEndStr();
+  if (v==='today') { if(fpFrom)fpFrom.setDate(td); if(fpTo)fpTo.setDate(td); }
+  else if (v==='yesterday') { if(fpFrom)fpFrom.setDate(yd); if(fpTo)fpTo.setDate(yd); }
+  else if (v==='week') { if(fpFrom)fpFrom.setDate(ws); if(fpTo)fpTo.setDate(td); }
+  else if (v==='month') { if(fpFrom)fpFrom.setDate(ms); if(fpTo)fpTo.setDate(me); }
+  else if (v==='overdue') { setFilter('overdue'); return; }
+  renderTable();
 }
 
 // ── DASHBOARD ──
 function renderDashboard() {
-  const td = today();
-  const yd = yesterday();
-  const totalWork = records.length;
-  const completedWork = records.filter(r => r.work === 'Completed').length;
-  const pendingWork = records.filter(r => r.work === 'Pending' || r.work === 'In Progress').length;
-  const totalPay = records.reduce((s,r) => s + (parseFloat(r.total)||0), 0);
-  const receivedPay = records.reduce((s,r) => s + (parseFloat(r.received)||0), 0);
-  const pendingPay = totalPay - receivedPay;
-  const todayFollowups = records.filter(r => r.followup === td).length;
+  const arr = Object.values(records);
+  const td = todayStr();
+  const totalWork = arr.length;
+  const completed = arr.filter(r=>r.work==='Completed').length;
+  const pending = arr.filter(r=>r.work!=='Completed').length;
+  const totalPay = arr.reduce((s,r)=>s+(parseFloat(r.total)||0),0);
+  const received = arr.reduce((s,r)=>s+(parseFloat(r.received)||0),0);
+  const pendingPay = totalPay - received;
+  const todayFu = arr.filter(r=>r.followup===td).length;
+  const overdue = arr.filter(r=>r.followup && r.followup<td).length;
 
-  const stats = [
-    { label: 'Total Work', value: totalWork, cls: 'accent' },
-    { label: 'Completed', value: completedWork, cls: 'green' },
-    { label: 'Pending Work', value: pendingWork, cls: 'red' },
-    { label: 'Total Payment', value: '₹'+fmt(totalPay), cls: '' },
-    { label: 'Received', value: '₹'+fmt(receivedPay), cls: 'green' },
-    { label: 'Pending Pay', value: '₹'+fmt(pendingPay), cls: 'red' },
-    { label: "Today's Follow-ups", value: todayFollowups, cls: 'orange' },
-  ];
-
-  document.getElementById('dashboard').innerHTML = stats.map(s => `
-    <div class="stat-card">
-      <div class="stat-label">${s.label}</div>
-      <div class="stat-value ${s.cls}">${s.value}</div>
-    </div>
-  `).join('');
+  document.getElementById('dashboard').innerHTML = [
+    {label:'Total Clients',value:totalWork,cls:'accent'},
+    {label:'Work Completed',value:completed,cls:'green'},
+    {label:'Work Pending',value:pending,cls:'red'},
+    {label:'Total Payment',value:'₹'+fmt(totalPay),cls:''},
+    {label:'Received',value:'₹'+fmt(received),cls:'green'},
+    {label:'Pending Pay',value:'₹'+fmt(pendingPay),cls:'red'},
+    {label:"Today's Follow-ups",value:todayFu,cls:'orange'},
+    {label:'Overdue',value:overdue,cls:'red'},
+  ].map(s=>`<div class="stat-card"><div class="stat-label">${s.label}</div><div class="stat-value ${s.cls}">${s.value}</div></div>`).join('');
 }
 
-function fmt(n) {
-  return Number(n).toLocaleString('en-IN');
-}
+function fmt(n) { return Number(n||0).toLocaleString('en-IN'); }
 
-// ── SMART FILTERS ──
-function setSmartFilter(f) {
+// ── SMART FILTER ──
+function setFilter(f) {
   smartFilter = f;
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.filter-btn').forEach(b => b.className='filter-btn');
+  const map = { 'all':'active', 'work-done-pay-pending':'active-red', 'pay-done-work-pending':'active-orange', 'follow-today':'active-yellow', 'overdue':'active-orange', 'done':'active-green' };
   const btn = document.getElementById('fb-'+f);
-  if(btn) btn.classList.add('active');
-  // reset dropdowns
-  document.getElementById('dateFilter').value = '';
-  document.getElementById('workFilter').value = '';
-  document.getElementById('payFilter').value = '';
+  if(btn) btn.classList.add(map[f]||'active');
+  if(fpFrom)fpFrom.clear();
+  if(fpTo)fpTo.clear();
+  document.getElementById('quickDate').value='';
   renderTable();
 }
 
-// ── TABLE RENDER ──
-function rowClass(r) {
-  const td = today();
-  const yd = yesterday();
-  if(r.work === 'Completed' && r.payment === 'Paid') return 'row-green';
-  if(r.followup && r.followup < td) return 'row-orange';
-  if(r.followup === td) return 'row-yellow';
-  if(r.payment === 'Pending' && r.work !== 'Completed') return 'row-red';
+// ── TABLE ──
+function rowCls(r) {
+  const td=todayStr();
+  if(r.work==='Completed'&&r.payment==='Paid') return 'row-green';
+  if(r.followup && r.followup<td) return 'row-orange';
+  if(r.followup===td) return 'row-yellow';
+  if(r.payment==='Pending') return 'row-red';
   return '';
 }
 
 function workBadge(w) {
-  if(w === 'Completed') return `<span class="badge badge-completed">Completed</span>`;
-  if(w === 'In Progress') return `<span class="badge badge-progress">In Progress</span>`;
-  return `<span class="badge badge-work-pending">Pending</span>`;
+  if(w==='Completed') return `<span class="badge badge-completed">✓ Completed</span>`;
+  if(w==='In Progress') return `<span class="badge badge-progress">⟳ In Progress</span>`;
+  return `<span class="badge badge-work-pending">⏳ Pending</span>`;
 }
 
 function payBadge(p) {
-  if(p === 'Paid') return `<span class="badge badge-paid">Paid</span>`;
-  if(p === 'Partial') return `<span class="badge badge-partial">Partial</span>`;
-  return `<span class="badge badge-pending">Pending</span>`;
+  if(p==='Paid') return `<span class="badge badge-paid">✓ Paid</span>`;
+  if(p==='Partial') return `<span class="badge badge-partial">½ Partial</span>`;
+  return `<span class="badge badge-pending">⚠ Pending</span>`;
 }
 
-function followupDisplay(f) {
-  if(!f) return '<span class="followup-normal">—</span>';
-  const td = today();
-  const yd = yesterday();
-  if(f < yd) return `<span class="followup-overdue">⚠ ${f}</span>`;
-  if(f === td) return `<span class="followup-today">📌 Today</span>`;
-  return `<span class="followup-normal">${f}</span>`;
+function fuDisplay(r) {
+  if(!r.followup) return '<span class="followup-normal">—</span>';
+  const td=todayStr(), yd=yesterdayStr();
+  const time = r.reminderTime ? `<div class="followup-time">⏰ ${r.reminderTime}</div>` : '';
+  if(r.followup<td) return `<span class="followup-overdue">⚠ ${r.followup}</span>${time}`;
+  if(r.followup===td) return `<span class="followup-today">📌 Today</span>${time}`;
+  return `<span class="followup-normal">${r.followup}</span>${time}`;
 }
 
 function renderTable() {
-  let data = [...records];
-  const td = today();
-  const yd = yesterday();
+  let arr = Object.entries(records).map(([id,r])=>({...r,id}));
+  const td=todayStr(), yd=yesterdayStr();
   const search = document.getElementById('searchInput').value.toLowerCase().trim();
-  const dateF = document.getElementById('dateFilter').value;
   const workF = document.getElementById('workFilter').value;
   const payF = document.getElementById('payFilter').value;
+  const fromD = document.getElementById('dateFrom').value;
+  const toD = document.getElementById('dateTo').value;
 
-  // Smart filters
-  if(smartFilter === 'work-done-pay-pending') {
-    data = data.filter(r => r.work === 'Completed' && r.payment !== 'Paid');
-  } else if(smartFilter === 'pay-done-work-pending') {
-    data = data.filter(r => r.payment === 'Paid' && r.work !== 'Completed');
-  } else if(smartFilter === 'follow-today') {
-    data = data.filter(r => r.followup === td);
-  } else if(smartFilter === 'overdue') {
-    data = data.filter(r => r.followup && r.followup < td);
-  }
+  // Smart filter
+  if(smartFilter==='work-done-pay-pending') arr=arr.filter(r=>r.work==='Completed'&&r.payment!=='Paid');
+  else if(smartFilter==='pay-done-work-pending') arr=arr.filter(r=>r.payment==='Paid'&&r.work!=='Completed');
+  else if(smartFilter==='follow-today') arr=arr.filter(r=>r.followup===td);
+  else if(smartFilter==='overdue') arr=arr.filter(r=>r.followup&&r.followup<td);
+  else if(smartFilter==='done') arr=arr.filter(r=>r.work==='Completed'&&r.payment==='Paid');
 
-  // Dropdown filters
-  if(search) {
-    data = data.filter(r =>
-      (r.name||'').toLowerCase().includes(search) ||
-      (r.phone||'').toLowerCase().includes(search) ||
-      (r.service||'').toLowerCase().includes(search)
-    );
-  }
-  if(dateF === 'today') data = data.filter(r => r.followup === td);
-  else if(dateF === 'yesterday') data = data.filter(r => r.followup === yd);
-  else if(dateF === 'month') data = data.filter(r => r.followup >= monthStart() && r.followup <= monthEnd());
-  if(workF) data = data.filter(r => r.work === workF);
-  if(payF) data = data.filter(r => r.payment === payF);
+  if(search) arr=arr.filter(r=>(r.name||'').toLowerCase().includes(search)||(r.phone||'').toLowerCase().includes(search)||(r.service||'').toLowerCase().includes(search));
+  if(workF) arr=arr.filter(r=>r.work===workF);
+  if(payF) arr=arr.filter(r=>r.payment===payF);
+  if(fromD) arr=arr.filter(r=>r.followup&&r.followup>=fromD);
+  if(toD) arr=arr.filter(r=>r.followup&&r.followup<=toD);
 
-  document.getElementById('recordCount').textContent = `${data.length} record${data.length !== 1 ? 's' : ''}`;
+  // Sort: overdue first, today next, then by date
+  arr.sort((a,b)=>{
+    const ad=a.followup||'9999', bd=b.followup||'9999';
+    return ad<bd?-1:ad>bd?1:0;
+  });
 
-  if(data.length === 0) {
-    document.getElementById('tableContainer').innerHTML = `
-      <div class="empty-state">
-        <div class="empty-icon">📋</div>
-        <h3>No records found</h3>
-        <p>Try adjusting your filters or add a new client.</p>
-      </div>`;
+  document.getElementById('recordCount').textContent = `${arr.length} record${arr.length!==1?'s':''}`;
+
+  if(arr.length===0){
+    document.getElementById('tableContainer').innerHTML=`<div class="empty-state"><div class="empty-icon">📋</div><h3>No records found</h3><p>Try adjusting filters or add a new client.</p></div>`;
     return;
   }
 
-  const html = `
-    <table>
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Client</th>
-          <th class="desktop-only">Service</th>
-          <th class="desktop-only">Total</th>
-          <th class="desktop-only">Received</th>
-          <th>Balance</th>
-          <th>Work</th>
-          <th>Payment</th>
-          <th>Follow-up</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${data.map((r,i) => {
-          const bal = (parseFloat(r.total)||0) - (parseFloat(r.received)||0);
-          const rc = rowClass(r);
-          return `<tr class="${rc}">
-            <td>${i+1}</td>
-            <td>
-              <div class="client-name">${esc(r.name)}</div>
-              <div class="client-phone">${r.phone ? esc(r.phone) : ''}</div>
-            </td>
-            <td class="desktop-only">${esc(r.service||'—')}</td>
-            <td class="desktop-only amount">₹${fmt(r.total||0)}</td>
-            <td class="desktop-only amount">₹${fmt(r.received||0)}</td>
-            <td class="amount ${bal > 0 ? 'balance-red' : 'balance-zero'}">₹${fmt(bal)}</td>
-            <td>${workBadge(r.work)}</td>
-            <td>${payBadge(r.payment)}</td>
-            <td>${followupDisplay(r.followup)}</td>
-            <td>
-              <div class="actions-cell">
-                <button class="btn btn-edit btn-sm" onclick="openModal('${r.id}')">Edit</button>
-                <button class="btn btn-danger btn-sm" onclick="deleteRecord('${r.id}')">Del</button>
-              </div>
-            </td>
-          </tr>`;
-        }).join('')}
-      </tbody>
-    </table>`;
-  document.getElementById('tableContainer').innerHTML = html;
+  document.getElementById('tableContainer').innerHTML=`
+  <table>
+    <thead><tr>
+      <th>#</th><th>Client</th>
+      <th class="d-none-sm">Service</th>
+      <th class="d-none-sm">Total</th>
+      <th class="d-none-sm">Received</th>
+      <th>Balance</th>
+      <th>Work</th><th>Payment</th>
+      <th>Follow-up</th>
+      <th>Actions</th>
+    </tr></thead>
+    <tbody>
+    ${arr.map((r,i)=>{
+      const bal=(parseFloat(r.total)||0)-(parseFloat(r.received)||0);
+      const rc=rowCls(r);
+      return `<tr class="${rc}">
+        <td style="color:var(--text3);font-size:11px;">${i+1}</td>
+        <td>
+          <div class="client-name">${esc(r.name)}</div>
+          ${r.phone?`<div class="client-phone">${esc(r.phone)}</div>`:''}
+        </td>
+        <td class="d-none-sm" style="color:var(--text2)">${esc(r.service||'—')}</td>
+        <td class="d-none-sm amount">₹${fmt(r.total||0)}</td>
+        <td class="d-none-sm amount">₹${fmt(r.received||0)}</td>
+        <td class="amount ${bal>0?'balance-red':'balance-zero'}">₹${fmt(bal)}</td>
+        <td>${workBadge(r.work)}</td>
+        <td>${payBadge(r.payment)}</td>
+        <td>${fuDisplay(r)}</td>
+        <td><div class="actions-cell">
+          <button class="btn btn-edit btn-sm" onclick="openModal('${r.id}')">✏</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteRecord('${r.id}')">🗑</button>
+        </div></td>
+      </tr>`;
+    }).join('')}
+    </tbody>
+  </table>`;
 }
 
-function esc(str) {
-  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
-// ── MODAL ──
+// ── ADD / EDIT ──
 function openModal(id) {
   editingId = id || null;
-  const r = id ? records.find(x => x.id === id) : null;
+  const r = id ? records[id] : null;
   document.getElementById('modalTitle').textContent = r ? 'Edit Client' : 'Add Client';
-  document.getElementById('f-name').value = r ? r.name : '';
-  document.getElementById('f-phone').value = r ? r.phone : '';
-  document.getElementById('f-service').value = r ? r.service : '';
-  document.getElementById('f-total').value = r ? r.total : '';
-  document.getElementById('f-received').value = r ? r.received : '';
-  document.getElementById('f-work').value = r ? r.work : 'Pending';
-  document.getElementById('f-payment').value = r ? r.payment : 'Pending';
-  document.getElementById('f-followup').value = r ? r.followup : '';
-  document.getElementById('f-notes').value = r ? r.notes : '';
+  document.getElementById('f-name').value = r?.name || '';
+  document.getElementById('f-phone').value = r?.phone || '';
+  document.getElementById('f-service').value = r?.service || '';
+  document.getElementById('f-total').value = r?.total || '';
+  document.getElementById('f-received').value = r?.received || '';
+  document.getElementById('f-work').value = r?.work || 'Pending';
+  document.getElementById('f-payment').value = r?.payment || 'Pending';
+  document.getElementById('f-time').value = r?.reminderTime || '';
+  document.getElementById('f-notes').value = r?.notes || '';
+  if(fpFollowup) { fpFollowup.clear(); if(r?.followup) fpFollowup.setDate(r.followup); }
   calcBalance();
   document.getElementById('modalOverlay').classList.add('open');
-  document.getElementById('f-name').focus();
+  setTimeout(()=>document.getElementById('f-name').focus(),100);
 }
 
-function closeModal() {
-  document.getElementById('modalOverlay').classList.remove('open');
-  editingId = null;
-}
+function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); editingId=null; }
 
 function calcBalance() {
-  const total = parseFloat(document.getElementById('f-total').value) || 0;
-  const received = parseFloat(document.getElementById('f-received').value) || 0;
-  const bal = total - received;
-  const el = document.getElementById('f-balance');
-  el.textContent = '₹' + fmt(bal);
-  el.style.color = bal > 0 ? 'var(--red)' : 'var(--green)';
+  const total=parseFloat(document.getElementById('f-total').value)||0;
+  const rec=parseFloat(document.getElementById('f-received').value)||0;
+  const bal=total-rec;
+  const el=document.getElementById('f-balance');
+  el.textContent='₹'+fmt(bal);
+  el.style.color=bal>0?'var(--red)':'var(--green)';
 }
 
-function saveRecord() {
+async function saveRecord() {
   const name = document.getElementById('f-name').value.trim();
-  if(!name) { alert('Client name is required.'); document.getElementById('f-name').focus(); return; }
-  const total = parseFloat(document.getElementById('f-total').value) || 0;
-  const received = parseFloat(document.getElementById('f-received').value) || 0;
-
+  if(!name){showToast('❌ Client name is required','error');document.getElementById('f-name').focus();return;}
   const rec = {
-    id: editingId || Date.now().toString(36) + Math.random().toString(36).slice(2,6),
     name,
     phone: document.getElementById('f-phone').value.trim(),
     service: document.getElementById('f-service').value.trim(),
-    total,
-    received,
+    total: parseFloat(document.getElementById('f-total').value)||0,
+    received: parseFloat(document.getElementById('f-received').value)||0,
     work: document.getElementById('f-work').value,
     payment: document.getElementById('f-payment').value,
-    followup: document.getElementById('f-followup').value,
+    followup: document.getElementById('f-followup').value || '',
+    reminderTime: document.getElementById('f-time').value || '',
     notes: document.getElementById('f-notes').value.trim(),
-    updated: new Date().toISOString()
+    updatedAt: new Date().toISOString()
   };
 
-  if(editingId) {
-    const idx = records.findIndex(r => r.id === editingId);
-    if(idx > -1) records[idx] = rec;
+  if(db) {
+    setSyncStatus('syncing');
+    try {
+      if(editingId) {
+        await db.ref('records/'+editingId).update(rec);
+      } else {
+        rec.createdAt = rec.updatedAt;
+        await db.ref('records').push(rec);
+      }
+      // Firebase listener will update records automatically
+    } catch(e) { showToast('❌ Save failed: '+e.message,'error'); setSyncStatus('error'); return; }
   } else {
-    rec.created = rec.updated;
-    records.unshift(rec);
+    const id = editingId || ('r'+Date.now().toString(36));
+    if(!editingId) rec.createdAt = rec.updatedAt;
+    records[id] = {...(records[id]||{}), ...rec};
+    saveLocal();
+    renderDashboard();
+    renderTable();
   }
-
-  save();
   closeModal();
-  renderDashboard();
-  renderTable();
+  showToast(editingId ? '✅ Record updated!' : '✅ Client added!','success');
+  scheduleAlarms();
 }
 
-function deleteRecord(id) {
-  if(!confirm('Delete this client record? This cannot be undone.')) return;
-  records = records.filter(r => r.id !== id);
-  save();
-  renderDashboard();
-  renderTable();
+async function deleteRecord(id) {
+  if(!confirm('Delete this record? Cannot be undone.')) return;
+  if(db) {
+    try { await db.ref('records/'+id).remove(); }
+    catch(e) { showToast('❌ Delete failed: '+e.message,'error'); return; }
+  } else {
+    delete records[id];
+    saveLocal();
+    renderDashboard();
+    renderTable();
+  }
+  showToast('🗑 Record deleted','warn');
 }
 
-// ── REMINDERS ──
-function showReminder() {
-  const td = today();
-  const todayList = records.filter(r => r.followup === td);
-  const overdueList = records.filter(r => r.followup && r.followup < td);
-  if(todayList.length === 0 && overdueList.length === 0) return;
+// ── REMINDER POPUP ──
+function showReminderPopup() {
+  const td=todayStr();
+  const arr=Object.values(records);
+  const todayList=arr.filter(r=>r.followup===td);
+  const overdueList=arr.filter(r=>r.followup&&r.followup<td);
+  if(!todayList.length&&!overdueList.length) return;
 
-  let html = '';
-  if(todayList.length > 0) {
-    html += `<div class="reminder-section-title">📌 Today (${todayList.length})</div>`;
-    html += todayList.map(r => `
-      <div class="reminder-item today">
-        <div class="reminder-name">${esc(r.name)}</div>
-        <div class="reminder-detail">${r.service||'—'} &nbsp;·&nbsp; ${r.phone||'—'}</div>
-      </div>`).join('');
+  let html='';
+  if(todayList.length) {
+    html+=`<div class="reminder-section-title">📌 Today's Follow-ups (${todayList.length})</div>`;
+    html+=todayList.map(r=>`<div class="reminder-item today">
+      <div class="reminder-name">${esc(r.name)}</div>
+      <div class="reminder-detail">${r.service||'—'} · ${r.phone||'—'}${r.reminderTime?' · ⏰ '+r.reminderTime:''}</div>
+    </div>`).join('');
   }
-  if(overdueList.length > 0) {
-    html += `<div class="reminder-section-title">⚠ Overdue / Missed (${overdueList.length})</div>`;
-    html += overdueList.map(r => `
-      <div class="reminder-item overdue">
-        <div class="reminder-name">${esc(r.name)}</div>
-        <div class="reminder-detail">${r.service||'—'} &nbsp;·&nbsp; Follow-up was: ${r.followup}</div>
-      </div>`).join('');
+  if(overdueList.length) {
+    html+=`<div class="reminder-section-title">⚠ Overdue / Missed (${overdueList.length})</div>`;
+    html+=overdueList.map(r=>`<div class="reminder-item overdue">
+      <div class="reminder-name">${esc(r.name)}</div>
+      <div class="reminder-detail">${r.service||'—'} · Was due: ${r.followup}</div>
+    </div>`).join('');
   }
-
-  document.getElementById('reminderBody').innerHTML = html;
+  document.getElementById('reminderBody').innerHTML=html;
   document.getElementById('reminderOverlay').classList.add('open');
+
+  // Browser notification
+  if('Notification' in window) {
+    Notification.requestPermission().then(perm=>{
+      if(perm==='granted'&&todayList.length) {
+        new Notification('KlawTax — Follow-ups Today',{
+          body:`You have ${todayList.length} follow-up(s) today!`,
+          icon:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">📋</text></svg>'
+        });
+      }
+    });
+  }
 }
 
-function closeReminder() {
-  document.getElementById('reminderOverlay').classList.remove('open');
+function closeReminder(){document.getElementById('reminderOverlay').classList.remove('open');}
+
+// ── ALARM / REMINDER AT EXACT TIME ──
+function scheduleAlarms() {
+  alarmTimers.forEach(t=>clearTimeout(t));
+  alarmTimers=[];
+  const arr=Object.entries(records);
+  const td=todayStr();
+  arr.forEach(([id,r])=>{
+    if(!r.followup||!r.reminderTime||r.followup!==td) return;
+    const [hh,mm]=r.reminderTime.split(':').map(Number);
+    const alarmTime=new Date();
+    alarmTime.setHours(hh,mm,0,0);
+    const ms=alarmTime-new Date();
+    if(ms<=0) return; // already past
+    const t=setTimeout(()=>fireAlarm(r),ms);
+    alarmTimers.push(t);
+  });
+}
+
+function fireAlarm(r) {
+  // Browser notification
+  if('Notification' in window && Notification.permission==='granted') {
+    new Notification(`⏰ Follow-up Reminder — ${r.name}`,{
+      body:`${r.service||''} · ${r.phone||''}\n${r.notes||''}`,
+      icon:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🔔</text></svg>',
+      requireInteraction:true
+    });
+  }
+  // In-page banner
+  const banner=document.getElementById('alarmBanner');
+  banner.innerHTML=`<div class="alarm-banner">
+    <div>
+      <div class="alarm-text">⏰ Follow-up Reminder: ${esc(r.name)}</div>
+      <div class="alarm-detail">${r.service||''} · ${r.phone||''} · ${r.reminderTime}</div>
+    </div>
+    <button class="alarm-close" onclick="document.getElementById('alarmBanner').style.display='none'">Dismiss</button>
+  </div>`;
+  banner.style.display='block';
+  // Audio beep
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    [0,0.3,0.6].forEach(delay=>{
+      const osc=ctx.createOscillator();
+      const gain=ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.frequency.value=880; osc.type='sine';
+      gain.gain.setValueAtTime(0,ctx.currentTime+delay);
+      gain.gain.linearRampToValueAtTime(0.4,ctx.currentTime+delay+0.05);
+      gain.gain.linearRampToValueAtTime(0,ctx.currentTime+delay+0.4);
+      osc.start(ctx.currentTime+delay);
+      osc.stop(ctx.currentTime+delay+0.5);
+    });
+  }catch(e){}
+  setTimeout(()=>{ banner.style.display='none'; },30000);
 }
 
 // ── EXPORT CSV ──
 function exportCSV() {
-  if(records.length === 0) { alert('No records to export.'); return; }
-  const headers = ['Name','Phone','Service','Total','Received','Balance','Work Status','Payment Status','Follow-up Date','Notes','Created'];
-  const rows = records.map(r => {
-    const bal = (parseFloat(r.total)||0) - (parseFloat(r.received)||0);
-    return [r.name, r.phone, r.service, r.total, r.received, bal, r.work, r.payment, r.followup, r.notes, r.created||''].map(v => `"${String(v||'').replace(/"/g,'""')}"`);
+  const arr=Object.values(records);
+  if(!arr.length){showToast('No records to export','warn');return;}
+  const headers=['Name','Phone','Service','Total','Received','Balance','Work Status','Payment Status','Follow-up Date','Reminder Time','Notes','Created'];
+  const rows=arr.map(r=>{
+    const bal=(parseFloat(r.total)||0)-(parseFloat(r.received)||0);
+    return [r.name,r.phone,r.service,r.total,r.received,bal,r.work,r.payment,r.followup,r.reminderTime,r.notes,r.createdAt||''];
   });
-  const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `KlawTax_${today()}.csv`;
-  a.click();
+  const csv=[headers,...rows].map(row=>row.map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download=`KlawTax_${todayStr()}.csv`; a.click();
   URL.revokeObjectURL(url);
+  showToast('✅ CSV exported!','success');
 }
 
-// ── KEYBOARD ──
-document.addEventListener('keydown', e => {
-  if(e.key === 'Escape') { closeModal(); closeReminder(); }
+// ── IMPORT ──
+function openImport() { document.getElementById('importOverlay').classList.add('open'); }
+function closeImport() { document.getElementById('importOverlay').classList.remove('open'); document.getElementById('importPreview').innerHTML=''; document.getElementById('importBtn').style.display='none'; importData=[]; }
+
+function dragOver(e) { e.preventDefault(); document.getElementById('dropzone').classList.add('drag'); }
+function dragLeave() { document.getElementById('dropzone').classList.remove('drag'); }
+function dropFile(e) { e.preventDefault(); dragLeave(); const f=e.dataTransfer.files[0]; if(f) processImportFile(f); }
+function handleFile(e) { const f=e.target.files[0]; if(f) processImportFile(f); }
+
+function processImportFile(file) {
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const wb=XLSX.read(e.target.result,{type:'array'});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+      if(rows.length<2){showToast('File is empty or has no data rows','warn');return;}
+      // Skip header row
+      importData=rows.slice(1).filter(r=>r[0]).map(r=>({
+        name:String(r[0]||'').trim(),
+        phone:String(r[1]||'').trim(),
+        service:String(r[2]||'').trim(),
+        total:parseFloat(r[3])||0,
+        received:parseFloat(r[4])||0,
+        work:['Pending','In Progress','Completed'].includes(r[5])?r[5]:'Pending',
+        payment:['Pending','Partial','Paid'].includes(r[6])?r[6]:'Pending',
+        followup:String(r[7]||'').trim(),
+        reminderTime:String(r[8]||'').trim(),
+        notes:String(r[9]||'').trim(),
+      })).filter(r=>r.name);
+
+      // Preview
+      const preview=importData.slice(0,5);
+      document.getElementById('importPreview').innerHTML=`
+        <div style="margin-top:12px;font-size:12px;color:var(--text2);margin-bottom:6px;">Preview — ${importData.length} records found (showing first 5):</div>
+        <div class="import-preview table-scroll">
+        <table><thead><tr><th>Name</th><th>Phone</th><th>Service</th><th>Total</th><th>Follow-up</th></tr></thead>
+        <tbody>${preview.map(r=>`<tr><td>${esc(r.name)}</td><td>${esc(r.phone)}</td><td>${esc(r.service)}</td><td>₹${fmt(r.total)}</td><td>${r.followup||'—'}</td></tr>`).join('')}</tbody>
+        </table></div>`;
+      document.getElementById('importBtn').style.display='inline-flex';
+    }catch(err){showToast('❌ Could not read file: '+err.message,'error');}
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+async function doImport() {
+  if(!importData.length) return;
+  let count=0;
+  for(const rec of importData) {
+    rec.createdAt=rec.updatedAt=new Date().toISOString();
+    if(db) {
+      await db.ref('records').push(rec);
+    } else {
+      const id='r'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+      records[id]=rec;
+    }
+    count++;
+  }
+  if(!db){saveLocal();renderDashboard();renderTable();}
+  closeImport();
+  showToast(`✅ Imported ${count} records!`,'success');
+  scheduleAlarms();
+}
+
+// ── TOAST ──
+function showToast(msg,type='') {
+  const t=document.createElement('div');
+  t.className='toast '+(type||'');
+  t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(),3500);
+}
+
+// ── KEYBOARD / CLICK OUTSIDE ──
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){closeModal();closeReminder();closeImport();closePwd();}
+  if(e.key==='Enter'&&document.getElementById('loginScreen').style.display!=='none') doLogin();
 });
-document.getElementById('modalOverlay').addEventListener('click', e => {
-  if(e.target === document.getElementById('modalOverlay')) closeModal();
-});
-document.getElementById('reminderOverlay').addEventListener('click', e => {
-  if(e.target === document.getElementById('reminderOverlay')) closeReminder();
+['modalOverlay','reminderOverlay','importOverlay','pwdOverlay'].forEach(id=>{
+  document.getElementById(id).addEventListener('click',e=>{
+    if(e.target===document.getElementById(id)){
+      if(id==='modalOverlay')closeModal();
+      else if(id==='reminderOverlay')closeReminder();
+      else if(id==='importOverlay')closeImport();
+      else closePwd();
+    }
+  });
 });
 
-// ── INIT ──
-setSmartFilter('all');
-renderDashboard();
-renderTable();
-setTimeout(showReminder, 400);
+// ── REQUEST NOTIFICATION PERMISSION EARLY ──
+if('Notification'in window && Notification.permission==='default') {
+  setTimeout(()=>Notification.requestPermission(),2000);
+}
+
+// ── Check if Firebase is configured, show hint ──
+if(!isFirebaseConfigured()) {
+  document.getElementById('setupHint').style.display='block';
+}
 </script>
 </body>
 </html>
