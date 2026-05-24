@@ -5,14 +5,10 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>KlawTax — Live Client Manager</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<!-- SheetJS for Excel import -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<!-- Flatpickr calendar -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"/>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{
   --bg:#f5f4f0;--surface:#fff;--surface2:#f0efe9;--border:#e2e0d8;
@@ -23,304 +19,271 @@
   --yellow:#d97706;--yellow-light:#fffbeb;--yellow-border:#fde68a;
   --orange:#ea580c;--orange-light:#fff7ed;--orange-border:#fed7aa;
   --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.05);
-  --shadow-md:0 4px 20px rgba(0,0,0,.13),0 2px 6px rgba(0,0,0,.07);
+  --shadow-md:0 4px 20px rgba(0,0,0,.13);
   --radius:10px;--radius-sm:6px;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;min-height:100vh;}
 
 /* LOGIN */
-.login-screen{
-  display:flex;align-items:center;justify-content:center;
-  min-height:100vh;background:var(--text);padding:20px;
-}
-.login-box{
-  background:#fff;border-radius:16px;padding:40px 36px;
-  width:100%;max-width:380px;text-align:center;
-  box-shadow:0 20px 60px rgba(0,0,0,.3);
-}
-.login-logo{font-size:28px;font-weight:800;margin-bottom:6px;letter-spacing:-.5px;}
+.login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#1e1b4b,#1d4ed8);padding:20px;}
+.login-box{background:#fff;border-radius:20px;padding:44px 38px;width:100%;max-width:400px;text-align:center;box-shadow:0 25px 60px rgba(0,0,0,.35);}
+.login-logo{font-size:32px;font-weight:800;margin-bottom:4px;letter-spacing:-.5px;color:var(--text);}
 .login-logo span{color:var(--accent);}
-.login-sub{color:var(--text3);font-size:13px;margin-bottom:28px;}
-.login-box input{
-  width:100%;padding:11px 14px;border:1.5px solid var(--border);
-  border-radius:var(--radius-sm);font-family:inherit;font-size:14px;
-  margin-bottom:12px;outline:none;transition:border-color .15s;
-}
-.login-box input:focus{border-color:var(--accent);}
-.login-btn{
-  width:100%;padding:11px;background:var(--accent);color:#fff;
-  border:none;border-radius:var(--radius-sm);font-family:inherit;
-  font-size:14px;font-weight:600;cursor:pointer;transition:background .15s;
-}
+.login-sub{color:var(--text3);font-size:13px;margin-bottom:32px;}
+.login-field{text-align:left;margin-bottom:14px;}
+.login-field label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:5px;}
+.login-field input{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;font-size:14px;outline:none;transition:border-color .15s;background:var(--bg);}
+.login-field input:focus{border-color:var(--accent);background:#fff;}
+.login-btn{width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;transition:background .15s;margin-top:4px;letter-spacing:.2px;}
 .login-btn:hover{background:#1e40af;}
-.login-err{color:var(--red);font-size:12px;margin-top:8px;display:none;}
-.login-setup{margin-top:20px;padding:14px;background:var(--accent-light);border-radius:var(--radius-sm);text-align:left;font-size:12px;color:var(--text2);}
-.login-setup strong{display:block;margin-bottom:4px;color:var(--accent);}
+.login-err{color:var(--red);font-size:12px;margin-top:10px;display:none;padding:8px 12px;background:var(--red-light);border-radius:var(--radius-sm);border:1px solid var(--red-border);}
+.login-note{margin-top:20px;font-size:12px;color:var(--text3);border-top:1px solid var(--border);padding-top:14px;}
 
 /* HEADER */
-header{
-  background:var(--text);color:#fff;padding:0 20px;
-  display:flex;align-items:center;justify-content:space-between;
-  height:52px;position:sticky;top:0;z-index:100;
-}
-.logo{font-size:17px;font-weight:700;letter-spacing:-.3px;}
+header{background:var(--text);color:#fff;padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:54px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.2);}
+.logo{font-size:18px;font-weight:800;letter-spacing:-.4px;}
 .logo span{color:#60a5fa;}
-.header-right{display:flex;align-items:center;gap:8px;}
-.sync-dot{width:8px;height:8px;border-radius:50%;background:#4ade80;animation:pulse 2s infinite;}
-.sync-dot.syncing{background:#fbbf24;}
-.sync-dot.error{background:#f87171;animation:none;}
-@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+.header-right{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.sync-wrap{display:flex;align-items:center;gap:5px;padding:4px 10px;background:rgba(255,255,255,.08);border-radius:20px;}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:#4ade80;}
+.sync-dot.off{background:#f87171;animation:none;}
+.sync-dot.wait{background:#fbbf24;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
+.sync-live{animation:blink 2s infinite;}
 .sync-label{font-size:11px;color:#9ca3af;}
 
 /* BUTTONS */
 .btn{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:var(--radius-sm);border:none;cursor:pointer;font-family:inherit;font-size:13px;font-weight:500;transition:all .15s;white-space:nowrap;}
 .btn-primary{background:var(--accent);color:#fff;}
 .btn-primary:hover{background:#1e40af;}
-.btn-ghost{background:rgba(255,255,255,.12);color:#fff;}
-.btn-ghost:hover{background:rgba(255,255,255,.22);}
+.btn-ghost{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.15);}
+.btn-ghost:hover{background:rgba(255,255,255,.2);}
 .btn-sm{padding:5px 9px;font-size:12px;}
 .btn-danger{background:var(--red-light);color:var(--red);border:1px solid var(--red-border);}
 .btn-danger:hover{background:#fee2e2;}
 .btn-edit{background:var(--accent-light);color:var(--accent);border:1px solid #c7d2fe;}
 .btn-edit:hover{background:#e0e7ff;}
-.btn-green{background:var(--green-light);color:var(--green);border:1px solid var(--green-border);}
-.btn-green:hover{background:#dcfce7;}
+.btn-cancel{background:var(--surface2);color:var(--text2);border:1px solid var(--border);}
+.btn-cancel:hover{background:var(--border);}
 .btn-yellow{background:var(--yellow-light);color:var(--yellow);border:1px solid var(--yellow-border);}
 
 /* MAIN */
 main{max-width:1500px;margin:0 auto;padding:20px 16px;}
 
 /* DASHBOARD */
-.dashboard{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:18px;}
-.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow);}
+.dashboard{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:10px;margin-bottom:16px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow);transition:transform .15s;}
+.stat-card:hover{transform:translateY(-1px);}
 .stat-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);margin-bottom:5px;}
 .stat-value{font-size:22px;font-weight:700;font-family:'DM Mono',monospace;}
-.stat-value.green{color:var(--green);}
-.stat-value.red{color:var(--red);}
-.stat-value.accent{color:var(--accent);}
-.stat-value.orange{color:var(--orange);}
+.sv-accent{color:var(--accent);}
+.sv-green{color:var(--green);}
+.sv-red{color:var(--red);}
+.sv-orange{color:var(--orange);}
 
 /* CONTROLS */
-.controls{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:14px;box-shadow:var(--shadow);display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+.controls{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;box-shadow:var(--shadow);display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
 .search-wrap{position:relative;flex:1;min-width:180px;}
-.search-wrap svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--text3);}
+.search-wrap svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none;}
 .search-input{width:100%;padding:8px 8px 8px 30px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;font-size:13px;background:var(--bg);color:var(--text);outline:none;transition:border-color .15s;}
 .search-input:focus{border-color:var(--accent);}
-select.fs{padding:7px 10px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;font-size:13px;background:var(--bg);color:var(--text);outline:none;cursor:pointer;}
-select.fs:focus{border-color:var(--accent);}
-.date-range-wrap{display:flex;gap:6px;align-items:center;}
-.date-range-wrap input{padding:7px 10px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;font-size:13px;background:var(--bg);color:var(--text);outline:none;width:130px;}
-.date-range-wrap input:focus{border-color:var(--accent);}
-.date-range-wrap span{color:var(--text3);font-size:12px;}
+.fs{padding:7px 10px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;font-size:13px;background:var(--bg);color:var(--text);outline:none;cursor:pointer;}
+.fs:focus{border-color:var(--accent);}
+.dr-wrap{display:flex;gap:6px;align-items:center;}
+.dr-wrap input{padding:7px 9px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;font-size:13px;background:var(--bg);color:var(--text);outline:none;width:126px;cursor:pointer;}
+.dr-wrap input:focus{border-color:var(--accent);}
+.dr-wrap span{color:var(--text3);font-size:12px;}
 
 /* FILTER PILLS */
 .filter-btns{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px;}
-.filter-btn{padding:6px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface);color:var(--text2);font-family:inherit;font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;white-space:nowrap;}
-.filter-btn:hover{border-color:var(--accent);color:var(--accent);}
-.filter-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
-.filter-btn.active-red{background:var(--red);color:#fff;border-color:var(--red);}
-.filter-btn.active-orange{background:var(--orange);color:#fff;border-color:var(--orange);}
-.filter-btn.active-yellow{background:var(--yellow);color:#fff;border-color:var(--yellow);}
-.filter-btn.active-green{background:var(--green);color:#fff;border-color:var(--green);}
+.fp{padding:6px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface);color:var(--text2);font-family:inherit;font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.fp:hover{border-color:var(--accent);color:var(--accent);}
+.fp.fa{background:var(--accent);color:#fff;border-color:var(--accent);}
+.fp.fr{background:var(--red);color:#fff;border-color:var(--red);}
+.fp.fo{background:var(--orange);color:#fff;border-color:var(--orange);}
+.fp.fy{background:var(--yellow);color:#fff;border-color:var(--yellow);}
+.fp.fg{background:var(--green);color:#fff;border-color:var(--green);}
 
 /* TABLE */
 .table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
 .table-header{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;}
 .table-title{font-weight:700;font-size:14px;}
-.table-actions{display:flex;gap:7px;align-items:center;}
-.record-count{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;}
-.table-scroll{overflow-x:auto;}
+.rec-count{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;background:var(--surface2);padding:3px 8px;border-radius:10px;}
+.tscroll{overflow-x:auto;}
 table{width:100%;border-collapse:collapse;}
 thead th{background:var(--surface2);padding:9px 11px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);white-space:nowrap;border-bottom:1px solid var(--border);}
-tbody tr{border-bottom:1px solid var(--border);transition:background .1s;}
+tbody tr{border-bottom:1px solid var(--border);transition:filter .1s;}
 tbody tr:last-child{border-bottom:none;}
 tbody tr:hover{filter:brightness(.97);}
 td{padding:9px 11px;font-size:13px;vertical-align:middle;}
-.client-name{font-weight:600;font-size:13px;}
-.client-phone{color:var(--text2);font-size:11px;font-family:'DM Mono',monospace;}
-.amount{font-family:'DM Mono',monospace;font-weight:500;}
-.balance-red{color:var(--red);font-weight:700;}
-.balance-zero{color:var(--green);font-weight:700;}
+.cn{font-weight:600;}
+.cp{color:var(--text2);font-size:11px;font-family:'DM Mono',monospace;}
+.amt{font-family:'DM Mono',monospace;font-weight:500;}
+.bal-r{color:var(--red);font-weight:700;}
+.bal-g{color:var(--green);font-weight:700;}
 
 /* BADGES */
 .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap;}
-.badge-pending{background:var(--red-light);color:var(--red);border:1px solid var(--red-border);}
-.badge-partial{background:var(--yellow-light);color:var(--yellow);border:1px solid var(--yellow-border);}
-.badge-paid{background:var(--green-light);color:var(--green);border:1px solid var(--green-border);}
-.badge-progress{background:var(--accent-light);color:var(--accent);border:1px solid #c7d2fe;}
-.badge-completed{background:var(--green-light);color:var(--green);border:1px solid var(--green-border);}
-.badge-work-pending{background:var(--orange-light);color:var(--orange);border:1px solid var(--orange-border);}
+.b-pending{background:var(--orange-light);color:var(--orange);border:1px solid var(--orange-border);}
+.b-progress{background:var(--accent-light);color:var(--accent);border:1px solid #c7d2fe;}
+.b-completed{background:var(--green-light);color:var(--green);border:1px solid var(--green-border);}
+.b-ppending{background:var(--red-light);color:var(--red);border:1px solid var(--red-border);}
+.b-partial{background:var(--yellow-light);color:var(--yellow);border:1px solid var(--yellow-border);}
+.b-paid{background:var(--green-light);color:var(--green);border:1px solid var(--green-border);}
 
-/* ROW COLORS */
-tr.row-red{background:#fff5f5;}
-tr.row-yellow{background:#fffbeb;}
-tr.row-orange{background:#fff7ed;}
-tr.row-green{background:#f0fdf4;}
+/* ROW HIGHLIGHT */
+tr.rr{background:#fff5f5;}
+tr.ry{background:#fffbeb;}
+tr.ro{background:#fff7ed;}
+tr.rg{background:#f0fdf4;}
 
-.followup-today{color:var(--yellow);font-weight:700;font-size:12px;}
-.followup-overdue{color:var(--orange);font-weight:700;font-size:12px;}
-.followup-normal{color:var(--text2);font-size:12px;}
-.followup-time{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;}
+.fu-today{color:var(--yellow);font-weight:700;font-size:12px;}
+.fu-over{color:var(--orange);font-weight:700;font-size:12px;}
+.fu-norm{color:var(--text2);font-size:12px;}
+.fu-time{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:1px;}
 
-.actions-cell{display:flex;gap:5px;}
+.act-cell{display:flex;gap:5px;}
 
 /* EMPTY */
-.empty-state{text-align:center;padding:50px 20px;color:var(--text3);}
-.empty-icon{font-size:38px;margin-bottom:10px;}
-.empty-state h3{font-size:15px;color:var(--text2);margin-bottom:4px;}
+.empty{text-align:center;padding:50px 20px;color:var(--text3);}
+.empty-icon{font-size:40px;margin-bottom:10px;}
 
 /* MODAL */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center;padding:16px;}
-.modal-overlay.open{display:flex;}
-.modal{background:var(--surface);border-radius:14px;box-shadow:var(--shadow-md);width:100%;max-width:580px;max-height:93vh;overflow-y:auto;animation:slideUp .2s ease;}
-@keyframes slideUp{from{transform:translateY(16px);opacity:0;}to{transform:translateY(0);opacity:1;}}
-.modal-head{padding:18px 22px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;z-index:1;}
-.modal-title{font-size:16px;font-weight:700;}
-.modal-close{background:var(--surface2);border:none;border-radius:6px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;color:var(--text2);transition:background .15s;}
-.modal-close:hover{background:var(--border);}
-.modal-body{padding:18px 22px;}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.form-group{display:flex;flex-direction:column;gap:4px;}
-.form-group.full{grid-column:1/-1;}
-.form-group.span3{grid-column:span 2;}
-label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;}
-input,textarea,select{padding:8px 10px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;font-size:13px;color:var(--text);background:var(--bg);outline:none;transition:border-color .15s;width:100%;}
-input:focus,textarea:focus,select:focus{border-color:var(--accent);background:#fff;}
-textarea{resize:vertical;min-height:60px;}
-.balance-display{padding:8px 10px;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:'DM Mono',monospace;font-size:14px;font-weight:700;}
-.modal-foot{padding:14px 22px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;position:sticky;bottom:0;background:#fff;}
-.btn-cancel{background:var(--surface2);color:var(--text2);border:1px solid var(--border);}
-.btn-cancel:hover{background:var(--border);}
+.mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center;padding:16px;}
+.mo.open{display:flex;}
+.modal{background:var(--surface);border-radius:14px;box-shadow:var(--shadow-md);width:100%;max-width:580px;max-height:94vh;overflow-y:auto;animation:su .2s ease;}
+@keyframes su{from{transform:translateY(14px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.mh{padding:16px 22px 13px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;z-index:2;}
+.mt{font-size:16px;font-weight:700;}
+.mc{background:var(--surface2);border:none;border-radius:6px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;color:var(--text2);}
+.mc:hover{background:var(--border);}
+.mb{padding:18px 22px;}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.fgi{display:flex;flex-direction:column;gap:4px;}
+.fgi.full{grid-column:1/-1;}
+.fgi label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;}
+.fgi input,.fgi select,.fgi textarea{padding:8px 10px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;font-size:13px;color:var(--text);background:var(--bg);outline:none;transition:border-color .15s;width:100%;}
+.fgi input:focus,.fgi select:focus,.fgi textarea:focus{border-color:var(--accent);background:#fff;}
+.fgi textarea{resize:vertical;min-height:60px;}
+.bal-box{padding:8px 10px;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:'DM Mono',monospace;font-size:15px;font-weight:700;}
+.mf{padding:13px 22px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;position:sticky;bottom:0;background:#fff;}
 
-/* REMINDER MODAL */
-.reminder-modal{background:var(--surface);border-radius:14px;box-shadow:var(--shadow-md);width:100%;max-width:440px;animation:slideUp .2s ease;}
-.reminder-head{padding:18px 22px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
-.reminder-title{font-size:15px;font-weight:700;}
-.reminder-body{padding:14px 22px;max-height:55vh;overflow-y:auto;}
-.reminder-section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);margin:10px 0 6px;}
-.reminder-section-title:first-child{margin-top:0;}
-.reminder-item{padding:9px 11px;border-radius:var(--radius-sm);margin-bottom:5px;border:1px solid;}
-.reminder-item.today{background:var(--yellow-light);border-color:var(--yellow-border);}
-.reminder-item.overdue{background:var(--orange-light);border-color:var(--orange-border);}
-.reminder-name{font-weight:600;font-size:13px;}
-.reminder-detail{font-size:11px;color:var(--text2);margin-top:2px;}
-.reminder-foot{padding:12px 22px;border-top:1px solid var(--border);}
+/* SMALL MODALS */
+.sm-modal{background:var(--surface);border-radius:14px;box-shadow:var(--shadow-md);width:100%;max-width:420px;animation:su .2s ease;}
+.sm-modal .mh,.sm-modal .mb,.sm-modal .mf{padding-left:20px;padding-right:20px;}
 
-/* IMPORT MODAL */
-.import-modal{background:var(--surface);border-radius:14px;box-shadow:var(--shadow-md);width:100%;max-width:520px;animation:slideUp .2s ease;}
-.dropzone{border:2px dashed var(--border);border-radius:var(--radius);padding:40px 20px;text-align:center;cursor:pointer;transition:all .15s;background:var(--surface2);}
+/* REMINDER */
+.rem-item{padding:9px 11px;border-radius:var(--radius-sm);margin-bottom:5px;border:1px solid;}
+.rem-today{background:var(--yellow-light);border-color:var(--yellow-border);}
+.rem-over{background:var(--orange-light);border-color:var(--orange-border);}
+.rem-name{font-weight:600;font-size:13px;}
+.rem-detail{font-size:11px;color:var(--text2);margin-top:2px;}
+.sec-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);margin:10px 0 6px;}
+.sec-title:first-child{margin-top:0;}
+
+/* IMPORT */
+.dropzone{border:2px dashed var(--border);border-radius:var(--radius);padding:36px 20px;text-align:center;cursor:pointer;transition:all .15s;background:var(--surface2);}
 .dropzone:hover,.dropzone.drag{border-color:var(--accent);background:var(--accent-light);}
-.dropzone-icon{font-size:36px;margin-bottom:10px;}
-.dropzone-text{font-size:14px;font-weight:500;color:var(--text2);}
-.dropzone-sub{font-size:12px;color:var(--text3);margin-top:4px;}
-.import-preview{margin-top:14px;max-height:200px;overflow-y:auto;}
-.import-preview table{font-size:11px;}
-.import-preview td,.import-preview th{padding:4px 8px;}
-.import-info{background:var(--accent-light);border:1px solid #c7d2fe;border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;color:var(--accent);margin-bottom:12px;}
-.import-info strong{display:block;margin-bottom:3px;}
+.dz-icon{font-size:34px;margin-bottom:8px;}
+.dz-text{font-size:14px;font-weight:500;color:var(--text2);}
+.dz-sub{font-size:12px;color:var(--text3);margin-top:3px;}
+.imp-info{background:var(--accent-light);border:1px solid #c7d2fe;border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;color:var(--accent);margin-bottom:12px;line-height:1.6;}
 
-/* CHANGE PASSWORD */
-.change-pwd-modal{background:var(--surface);border-radius:14px;box-shadow:var(--shadow-md);width:100%;max-width:360px;animation:slideUp .2s ease;}
+/* ALARM */
+.alarm-bar{position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;animation:sd .3s ease;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+@keyframes sd{from{transform:translateY(-100%);}to{transform:translateY(0);}}
+.alarm-text{font-size:14px;font-weight:700;}
+.alarm-sub{font-size:12px;opacity:.85;margin-top:2px;}
+.alarm-dis{background:rgba(255,255,255,.2);border:none;color:#fff;padding:6px 14px;border-radius:5px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:500;white-space:nowrap;}
 
 /* TOAST */
-.toast{position:fixed;bottom:24px;right:24px;background:var(--text);color:#fff;padding:11px 18px;border-radius:var(--radius-sm);font-size:13px;font-weight:500;z-index:9999;animation:slideUp .2s ease;display:flex;align-items:center;gap:8px;box-shadow:var(--shadow-md);}
-.toast.success{background:var(--green);}
-.toast.error{background:var(--red);}
-.toast.warn{background:var(--orange);}
-
-/* ALARM BANNER */
-.alarm-banner{position:fixed;top:0;left:0;right:0;z-index:9998;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;animation:slideDown .3s ease;box-shadow:0 4px 20px rgba(0,0,0,.3);}
-@keyframes slideDown{from{transform:translateY(-100%);}to{transform:translateY(0);}}
-.alarm-text{font-size:14px;font-weight:600;}
-.alarm-detail{font-size:12px;opacity:.85;margin-top:2px;}
-.alarm-close{background:rgba(255,255,255,.2);border:none;color:#fff;padding:5px 12px;border-radius:5px;cursor:pointer;font-family:inherit;font-size:13px;}
+.toast{position:fixed;bottom:22px;right:20px;background:var(--text);color:#fff;padding:10px 16px;border-radius:var(--radius-sm);font-size:13px;font-weight:500;z-index:9998;animation:su .2s ease;display:flex;align-items:center;gap:7px;box-shadow:var(--shadow-md);max-width:320px;}
+.toast.ok{background:#15803d;}
+.toast.er{background:var(--red);}
+.toast.wn{background:var(--orange);}
 
 /* RESPONSIVE */
-.d-none-sm{display:table-cell;}
+.dn{display:table-cell;}
 @media(max-width:900px){
-  .d-none-sm{display:none;}
-  .form-grid{grid-template-columns:1fr;}
-  .form-group.full,.form-group.span3{grid-column:1;}
+  .dn{display:none;}
+  .fg{grid-template-columns:1fr;}
+  .fgi.full{grid-column:1;}
 }
-@media(max-width:600px){
-  main{padding:14px 10px;}
+@media(max-width:640px){
+  main{padding:12px 10px;}
   header{padding:0 12px;}
   .dashboard{grid-template-columns:repeat(2,1fr);}
   .stat-value{font-size:19px;}
-  .header-right .sync-label{display:none;}
-  .btn-ghost span{display:none;}
+  .header-right .lbl{display:none;}
 }
 ::-webkit-scrollbar{width:5px;height:5px;}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
-
-/* flatpickr override */
 .flatpickr-calendar{font-family:'DM Sans',sans-serif!important;}
 </style>
 </head>
 <body>
 
-<!-- ══════════════════════════ LOGIN ══════════════════════════ -->
+<!-- ═══════════════════ LOGIN ═══════════════════ -->
 <div id="loginScreen" class="login-screen">
   <div class="login-box">
     <div class="login-logo">Klaw<span>Tax</span></div>
-    <div class="login-sub">Secure Client Manager</div>
-    <input type="text" id="loginUser" placeholder="Username" autocomplete="username"/>
-    <input type="password" id="loginPass" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"/>
-    <button class="login-btn" onclick="doLogin()">Sign In →</button>
-    <div class="login-err" id="loginErr">❌ Incorrect credentials. Try again.</div>
-    <div class="login-setup" id="setupHint" style="display:none">
-      <strong>⚙️ Firebase Not Configured</strong>
-      Open the HTML file, find <code>FIREBASE CONFIG</code> and paste your Firebase project credentials. See instructions in the code comments.
+    <div class="login-sub">Secure Client Manager — Live Sync</div>
+    <div class="login-field">
+      <label>Username</label>
+      <input type="text" id="lu" placeholder="Enter username" autocomplete="username"/>
     </div>
+    <div class="login-field">
+      <label>Password</label>
+      <input type="password" id="lp" placeholder="Enter password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"/>
+    </div>
+    <button class="login-btn" onclick="doLogin()">Sign In →</button>
+    <div class="login-err" id="lerr">❌ Wrong username or password</div>
+    <div class="login-note">Default: <b>admin</b> / <b>klawtax123</b><br/>Change anytime from the 🔑 button after login</div>
   </div>
 </div>
 
-<!-- ══════════════════════════ APP ══════════════════════════ -->
+<!-- ═══════════════════ APP ═══════════════════ -->
 <div id="appScreen" style="display:none">
-
 <header>
   <div class="logo">Klaw<span>Tax</span></div>
   <div class="header-right">
-    <div class="sync-dot" id="syncDot" title="Live sync status"></div>
-    <span class="sync-label" id="syncLabel">Live</span>
-    <button class="btn btn-ghost btn-sm" onclick="openImport()">📥 <span>Import Excel</span></button>
-    <button class="btn btn-ghost btn-sm" onclick="exportCSV()">⬇ <span>Export</span></button>
-    <button class="btn btn-ghost btn-sm" onclick="openChangePwd()">🔑</button>
-    <button class="btn btn-ghost btn-sm" onclick="doLogout()">⎋ <span>Logout</span></button>
+    <div class="sync-wrap">
+      <div class="sync-dot sync-live" id="syncDot"></div>
+      <span class="sync-label" id="syncLbl">Connecting…</span>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="openImport()">📥 <span class="lbl">Import Excel</span></button>
+    <button class="btn btn-ghost btn-sm" onclick="exportCSV()">⬇ <span class="lbl">Export</span></button>
+    <button class="btn btn-ghost btn-sm" onclick="openPwd()">🔑</button>
+    <button class="btn btn-ghost btn-sm" onclick="doLogout()">⎋ <span class="lbl">Logout</span></button>
     <button class="btn btn-primary btn-sm" onclick="openModal()">+ Add Client</button>
   </div>
 </header>
 
 <main>
-  <!-- DASHBOARD -->
-  <div class="dashboard" id="dashboard"></div>
+  <div class="dashboard" id="dash"></div>
 
   <!-- CONTROLS -->
   <div class="controls">
     <div class="search-wrap">
       <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-      <input class="search-input" id="searchInput" type="text" placeholder="Search name, phone, service…" oninput="renderTable()"/>
+      <input class="search-input" id="srch" type="text" placeholder="Search name, phone, service…" oninput="render()"/>
     </div>
-    <select class="fs" id="workFilter" onchange="renderTable()">
+    <select class="fs" id="wf" onchange="render()">
       <option value="">All Work Status</option>
-      <option>Pending</option>
-      <option>In Progress</option>
-      <option>Completed</option>
+      <option>Pending</option><option>In Progress</option><option>Completed</option>
     </select>
-    <select class="fs" id="payFilter" onchange="renderTable()">
+    <select class="fs" id="pf" onchange="render()">
       <option value="">All Payment</option>
-      <option>Pending</option>
-      <option>Partial</option>
-      <option>Paid</option>
+      <option>Pending</option><option>Partial</option><option>Paid</option>
     </select>
-    <div class="date-range-wrap">
-      <input type="text" id="dateFrom" placeholder="From date" readonly/>
+    <div class="dr-wrap">
+      <input type="text" id="df" placeholder="From date" readonly/>
       <span>→</span>
-      <input type="text" id="dateTo" placeholder="To date" readonly/>
-      <button class="btn btn-sm btn-yellow" onclick="clearDateRange()" title="Clear dates">✕</button>
+      <input type="text" id="dt" placeholder="To date" readonly/>
+      <button class="btn btn-sm btn-yellow" onclick="clearDates()" title="Clear">✕</button>
     </div>
-    <select class="fs" id="quickDate" onchange="applyQuickDate()">
+    <select class="fs" id="qd" onchange="quickDate()">
       <option value="">Quick Date</option>
       <option value="today">Today's Follow-ups</option>
       <option value="yesterday">Yesterday</option>
@@ -332,12 +295,12 @@ textarea{resize:vertical;min-height:60px;}
 
   <!-- SMART FILTERS -->
   <div class="filter-btns">
-    <button class="filter-btn active" id="fb-all" onclick="setFilter('all')">All Records</button>
-    <button class="filter-btn" id="fb-work-done-pay-pending" onclick="setFilter('work-done-pay-pending')">🔴 Work Done + Pay Pending</button>
-    <button class="filter-btn" id="fb-pay-done-work-pending" onclick="setFilter('pay-done-work-pending')">🟠 Paid + Work Pending</button>
-    <button class="filter-btn" id="fb-follow-today" onclick="setFilter('follow-today')">🟡 Follow-up Today</button>
-    <button class="filter-btn" id="fb-overdue" onclick="setFilter('overdue')">⚠ Overdue</button>
-    <button class="filter-btn" id="fb-done" onclick="setFilter('done')">✅ Completed + Paid</button>
+    <button class="fp fa" id="fb-all"       onclick="sf('all')">All Records</button>
+    <button class="fp"    id="fb-wdpp"      onclick="sf('wdpp')">🔴 Work Done + Pay Pending</button>
+    <button class="fp"    id="fb-pdwp"      onclick="sf('pdwp')">🟠 Paid + Work Pending</button>
+    <button class="fp"    id="fb-today"     onclick="sf('today')">🟡 Follow-up Today</button>
+    <button class="fp"    id="fb-overdue"   onclick="sf('overdue')">⚠ Overdue</button>
+    <button class="fp"    id="fb-done"      onclick="sf('done')">✅ Completed + Paid</button>
   </div>
 
   <!-- TABLE -->
@@ -345,800 +308,628 @@ textarea{resize:vertical;min-height:60px;}
     <div class="table-header">
       <div style="display:flex;align-items:center;gap:8px;">
         <span class="table-title">Client Records</span>
-        <span class="record-count" id="recordCount">Loading…</span>
+        <span class="rec-count" id="rc">—</span>
       </div>
-      <div class="table-actions">
-        <span id="lastUpdated" style="font-size:11px;color:var(--text3);"></span>
-      </div>
+      <span id="lastSync" style="font-size:11px;color:var(--text3);"></span>
     </div>
-    <div class="table-scroll" id="tableContainer">
-      <div class="empty-state"><div class="empty-icon">⏳</div><h3>Loading records…</h3></div>
+    <div class="tscroll" id="tbl">
+      <div class="empty"><div class="empty-icon">⏳</div><p>Loading…</p></div>
     </div>
   </div>
 </main>
 </div>
 
-<!-- ══════════════════════════ MODALS ══════════════════════════ -->
-
-<!-- ADD/EDIT RECORD -->
-<div class="modal-overlay" id="modalOverlay">
+<!-- ═══════════ ADD/EDIT MODAL ═══════════ -->
+<div class="mo" id="mAdd">
   <div class="modal">
-    <div class="modal-head">
-      <span class="modal-title" id="modalTitle">Add Client</span>
-      <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="mh">
+      <span class="mt" id="mTitle">Add Client</span>
+      <button class="mc" onclick="closeModal()">✕</button>
     </div>
-    <div class="modal-body">
-      <div class="form-grid">
-        <div class="form-group">
-          <label>Client Name *</label>
-          <input type="text" id="f-name" placeholder="Full name"/>
+    <div class="mb">
+      <div class="fg">
+        <div class="fgi"><label>Client Name *</label><input type="text" id="fn" placeholder="Full name"/></div>
+        <div class="fgi"><label>Phone</label><input type="tel" id="fph" placeholder="Mobile number"/></div>
+        <div class="fgi full"><label>Service</label><input type="text" id="fsv" placeholder="e.g. ITR Filing, GST Return, TDS…"/></div>
+        <div class="fgi"><label>Total Amount (₹)</label><input type="number" id="ft" placeholder="0" min="0" oninput="calcBal()"/></div>
+        <div class="fgi"><label>Received Amount (₹)</label><input type="number" id="fr" placeholder="0" min="0" oninput="calcBal()"/></div>
+        <div class="fgi"><label>Balance (Auto)</label><div class="bal-box" id="fb">₹0</div></div>
+        <div class="fgi"><label>Work Status</label>
+          <select id="fw"><option>Pending</option><option>In Progress</option><option>Completed</option></select>
         </div>
-        <div class="form-group">
-          <label>Phone</label>
-          <input type="tel" id="f-phone" placeholder="Mobile number"/>
+        <div class="fgi"><label>Payment Status</label>
+          <select id="fpy"><option>Pending</option><option>Partial</option><option>Paid</option></select>
         </div>
-        <div class="form-group full">
-          <label>Service</label>
-          <input type="text" id="f-service" placeholder="e.g. ITR Filing, GST Return, TDS…"/>
-        </div>
-        <div class="form-group">
-          <label>Total Amount (₹)</label>
-          <input type="number" id="f-total" placeholder="0" min="0" oninput="calcBalance()"/>
-        </div>
-        <div class="form-group">
-          <label>Received Amount (₹)</label>
-          <input type="number" id="f-received" placeholder="0" min="0" oninput="calcBalance()"/>
-        </div>
-        <div class="form-group">
-          <label>Balance (₹) — Auto</label>
-          <div class="balance-display" id="f-balance">₹0</div>
-        </div>
-        <div class="form-group">
-          <label>Work Status</label>
-          <select id="f-work">
-            <option>Pending</option>
-            <option>In Progress</option>
-            <option>Completed</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Payment Status</label>
-          <select id="f-payment">
-            <option>Pending</option>
-            <option>Partial</option>
-            <option>Paid</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Next Follow-up Date</label>
-          <input type="text" id="f-followup" placeholder="Pick date" readonly/>
-        </div>
-        <div class="form-group">
-          <label>Reminder Time</label>
-          <input type="time" id="f-time" placeholder="HH:MM"/>
-        </div>
-        <div class="form-group full">
-          <label>Notes</label>
-          <textarea id="f-notes" placeholder="Any additional notes…"></textarea>
-        </div>
+        <div class="fgi"><label>Follow-up Date</label><input type="text" id="ffu" placeholder="Pick date" readonly/></div>
+        <div class="fgi"><label>Reminder Time</label><input type="time" id="ftm"/></div>
+        <div class="fgi full"><label>Notes</label><textarea id="fnt" placeholder="Any notes…"></textarea></div>
       </div>
     </div>
-    <div class="modal-foot">
+    <div class="mf">
       <button class="btn btn-cancel" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="saveRecord()">💾 Save Client</button>
+      <button class="btn btn-primary" onclick="saveRec()">💾 Save Client</button>
     </div>
   </div>
 </div>
 
-<!-- REMINDER POPUP -->
-<div class="modal-overlay" id="reminderOverlay">
-  <div class="reminder-modal">
-    <div class="reminder-head">
-      <span class="reminder-title">🔔 Today's Reminders</span>
-      <button class="modal-close" onclick="closeReminder()">✕</button>
-    </div>
-    <div class="reminder-body" id="reminderBody"></div>
-    <div class="reminder-foot">
-      <button class="btn btn-primary" style="width:100%" onclick="closeReminder()">Got it — Let's Work!</button>
-    </div>
+<!-- ═══════════ REMINDER MODAL ═══════════ -->
+<div class="mo" id="mRem">
+  <div class="sm-modal">
+    <div class="mh"><span class="mt">🔔 Follow-up Reminders</span><button class="mc" onclick="closeRem()">✕</button></div>
+    <div class="mb" id="remBody" style="max-height:55vh;overflow-y:auto;padding:16px 20px;"></div>
+    <div class="mf"><button class="btn btn-primary" style="width:100%" onclick="closeRem()">Got it — Let's Work! 💪</button></div>
   </div>
 </div>
 
-<!-- IMPORT MODAL -->
-<div class="modal-overlay" id="importOverlay">
-  <div class="import-modal">
-    <div class="modal-head">
-      <span class="modal-title">📥 Import from Excel / CSV</span>
-      <button class="modal-close" onclick="closeImport()">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="import-info">
-        <strong>📋 Required Excel Columns (in order):</strong>
-        Name | Phone | Service | Total Amount | Received Amount | Work Status | Payment Status | Follow-up Date (YYYY-MM-DD) | Reminder Time (HH:MM) | Notes
-        <br/><br/>First row = header row (will be skipped automatically).
+<!-- ═══════════ IMPORT MODAL ═══════════ -->
+<div class="mo" id="mImp">
+  <div class="sm-modal" style="max-width:520px;">
+    <div class="mh"><span class="mt">📥 Import from Excel / CSV</span><button class="mc" onclick="closeImport()">✕</button></div>
+    <div class="mb">
+      <div class="imp-info">
+        <strong>📋 Excel Column Order (Row 1 = Header, auto-skipped):</strong><br/>
+        Name | Phone | Service | Total | Received | Work Status | Payment Status | Follow-up Date (YYYY-MM-DD) | Time (HH:MM) | Notes
       </div>
-      <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event)">
-        <div class="dropzone-icon">📂</div>
-        <div class="dropzone-text">Click to select or drag & drop file</div>
-        <div class="dropzone-sub">.xlsx, .xls, .csv supported</div>
+      <div class="dropzone" id="dz" onclick="document.getElementById('fi').click()" ondragover="dzOver(event)" ondragleave="dzLeave()" ondrop="dzDrop(event)">
+        <div class="dz-icon">📂</div>
+        <div class="dz-text">Click to browse or drag & drop</div>
+        <div class="dz-sub">.xlsx .xls .csv supported</div>
       </div>
-      <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleFile(event)"/>
-      <div id="importPreview"></div>
+      <input type="file" id="fi" accept=".xlsx,.xls,.csv" style="display:none" onchange="fileChg(event)"/>
+      <div id="impPrev"></div>
     </div>
-    <div class="modal-foot">
+    <div class="mf">
       <button class="btn btn-cancel" onclick="closeImport()">Cancel</button>
-      <button class="btn btn-primary" id="importBtn" onclick="doImport()" style="display:none">✅ Import Records</button>
+      <button class="btn btn-primary" id="impBtn" onclick="doImport()" style="display:none">✅ Import Records</button>
     </div>
   </div>
 </div>
 
-<!-- CHANGE PASSWORD MODAL -->
-<div class="modal-overlay" id="pwdOverlay">
-  <div class="change-pwd-modal">
-    <div class="modal-head">
-      <span class="modal-title">🔑 Change Password</span>
-      <button class="modal-close" onclick="closePwd()">✕</button>
+<!-- ═══════════ CHANGE PASSWORD MODAL ═══════════ -->
+<div class="mo" id="mPwd">
+  <div class="sm-modal" style="max-width:360px;">
+    <div class="mh"><span class="mt">🔑 Change Login</span><button class="mc" onclick="closePwd()">✕</button></div>
+    <div class="mb" style="display:flex;flex-direction:column;gap:10px;">
+      <div class="fgi"><label>Current Password</label><input type="password" id="pc"/></div>
+      <div class="fgi"><label>New Username</label><input type="text" id="pu"/></div>
+      <div class="fgi"><label>New Password</label><input type="password" id="pp"/></div>
+      <div class="fgi"><label>Confirm Password</label><input type="password" id="ppc"/></div>
+      <div id="perr" style="color:var(--red);font-size:12px;display:none;"></div>
     </div>
-    <div class="modal-body" style="display:flex;flex-direction:column;gap:10px;">
-      <div class="form-group">
-        <label>Current Password</label>
-        <input type="password" id="pwd-current" placeholder="Enter current password"/>
-      </div>
-      <div class="form-group">
-        <label>New Username</label>
-        <input type="text" id="pwd-user" placeholder="New username"/>
-      </div>
-      <div class="form-group">
-        <label>New Password</label>
-        <input type="password" id="pwd-new" placeholder="New password (min 6 chars)"/>
-      </div>
-      <div class="form-group">
-        <label>Confirm New Password</label>
-        <input type="password" id="pwd-confirm" placeholder="Repeat new password"/>
-      </div>
-      <div id="pwdErr" style="color:var(--red);font-size:12px;display:none;"></div>
-    </div>
-    <div class="modal-foot">
+    <div class="mf">
       <button class="btn btn-cancel" onclick="closePwd()">Cancel</button>
-      <button class="btn btn-primary" onclick="doChangePwd()">Update Credentials</button>
+      <button class="btn btn-primary" onclick="savePwd()">Update</button>
     </div>
   </div>
 </div>
 
-<!-- ALARM BANNER placeholder -->
-<div id="alarmBanner" style="display:none"></div>
+<!-- ALARM BAR -->
+<div id="alarmBar" style="display:none"></div>
 
-<!-- ══════════════════════════ SCRIPT ══════════════════════════ -->
 <script>
-/* ════════════════════════════════════════════
-   ⚙️  FIREBASE CONFIG — REPLACE WITH YOUR OWN
-   ════════════════════════════════════════════
-   Steps:
-   1. Go to https://console.firebase.google.com
-   2. Create a new project (e.g. "klawtax")
-   3. Click "Add App" → Web → Register
-   4. Copy the firebaseConfig object and paste below
-   5. Go to Realtime Database → Create database → Start in test mode
-   6. Copy the database URL into databaseURL below
-   ════════════════════════════════════════════ */
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
-};
+/* ══════════════════════════════════════════
+   SUPABASE CONFIG
+══════════════════════════════════════════ */
+const SUPABASE_URL  = 'https://kwpzisgwwlxztuxarouw.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3cHppc2d3d2x4enR1eGFyb3V3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2MTc5ODYsImV4cCI6MjA5NTE5Mzk4Nn0.L8GdCsHKmJRMLEjWFi4er2PeINxMA3ERHqrKgl5-xWE';
+const TABLE = 'clients';
 
-/* ════════════════════════════
-   🔐 CREDENTIALS (stored in Firebase once configured)
-   Default first login: admin / klawtax123
-   Change after first login using the 🔑 button
-   ════════════════════════════ */
-const DEFAULT_USER = "admin";
-const DEFAULT_PASS = "klawtax123";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-/* ════════════════════════════ */
+/* ══════════════════════════════════════════
+   STATE
+══════════════════════════════════════════ */
+let records   = [];
+let impData   = [];
+let editId    = null;
+let smartF    = 'all';
+let alarmTmrs = [];
+let remShown  = false;
+let fpFU, fpFrom, fpTo;
 
-let db = null;
-let records = {};       // key→record (live from Firebase)
-let importData = [];
-let editingId = null;
-let smartFilter = 'all';
-let fpFollowup = null;
-let fpFrom = null;
-let fpTo = null;
-let alarmTimers = [];
-let reminderShown = false;
-const CRED_KEY = 'klawtax_creds';
+const CK = 'kt_creds_v2';
+function getCreds(){ try{return JSON.parse(localStorage.getItem(CK))||{u:'admin',p:'klawtax123'};}catch{return{u:'admin',p:'klawtax123'};} }
 
-// ── FIREBASE INIT ──
-function initFirebase() {
-  try {
-    const app = firebase.initializeApp(firebaseConfig);
-    db = firebase.database(app);
-    setSyncStatus('syncing');
-    // Test connection
-    db.ref('.info/connected').on('value', snap => {
-      if (snap.val()) setSyncStatus('live');
-      else setSyncStatus('error');
-    });
-    return true;
-  } catch(e) {
-    console.warn('Firebase init failed:', e);
-    return false;
-  }
-}
-
-function isFirebaseConfigured() {
-  return firebaseConfig.apiKey && firebaseConfig.apiKey !== 'YOUR_API_KEY';
-}
-
-function setSyncStatus(state) {
-  const dot = document.getElementById('syncDot');
-  const label = document.getElementById('syncLabel');
-  if (!dot) return;
-  dot.className = 'sync-dot' + (state === 'error' ? ' error' : state === 'syncing' ? ' syncing' : '');
-  label.textContent = state === 'live' ? 'Live ✓' : state === 'syncing' ? 'Syncing…' : 'Offline';
-}
-
-// ── AUTH ──
-function getCreds() {
-  try {
-    const c = JSON.parse(localStorage.getItem(CRED_KEY));
-    return c || { user: DEFAULT_USER, pass: DEFAULT_PASS };
-  } catch { return { user: DEFAULT_USER, pass: DEFAULT_PASS }; }
-}
-
-function doLogin() {
-  const u = document.getElementById('loginUser').value.trim();
-  const p = document.getElementById('loginPass').value;
-  const creds = getCreds();
-  if (u === creds.user && p === creds.pass) {
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('appScreen').style.display = 'block';
-    document.getElementById('loginErr').style.display = 'none';
+/* ══════════════════════════════════════════
+   AUTH
+══════════════════════════════════════════ */
+function doLogin(){
+  const u=document.getElementById('lu').value.trim();
+  const p=document.getElementById('lp').value;
+  const c=getCreds();
+  if(u===c.u&&p===c.p){
+    document.getElementById('loginScreen').style.display='none';
+    document.getElementById('appScreen').style.display='block';
+    document.getElementById('lerr').style.display='none';
     initApp();
   } else {
-    document.getElementById('loginErr').style.display = 'block';
-    document.getElementById('loginPass').value = '';
+    document.getElementById('lerr').style.display='block';
+    document.getElementById('lp').value='';
+    document.getElementById('lp').focus();
   }
 }
-
-function doLogout() {
-  if (!confirm('Log out?')) return;
-  document.getElementById('appScreen').style.display = 'none';
-  document.getElementById('loginScreen').style.display = 'flex';
-  document.getElementById('loginUser').value = '';
-  document.getElementById('loginPass').value = '';
+function doLogout(){
+  if(!confirm('Log out?'))return;
+  document.getElementById('appScreen').style.display='none';
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('lu').value='';
+  document.getElementById('lp').value='';
+  records=[];
 }
-
-function openChangePwd() {
-  document.getElementById('pwd-current').value = '';
-  document.getElementById('pwd-user').value = '';
-  document.getElementById('pwd-new').value = '';
-  document.getElementById('pwd-confirm').value = '';
-  document.getElementById('pwdErr').style.display = 'none';
-  document.getElementById('pwdOverlay').classList.add('open');
-}
-function closePwd() { document.getElementById('pwdOverlay').classList.remove('open'); }
-
-function doChangePwd() {
-  const cur = document.getElementById('pwd-current').value;
-  const newU = document.getElementById('pwd-user').value.trim();
-  const newP = document.getElementById('pwd-new').value;
-  const conf = document.getElementById('pwd-confirm').value;
-  const creds = getCreds();
-  const err = document.getElementById('pwdErr');
-  if (cur !== creds.pass) { err.textContent = '❌ Current password is wrong.'; err.style.display = 'block'; return; }
-  if (!newU) { err.textContent = '❌ Username cannot be empty.'; err.style.display = 'block'; return; }
-  if (newP.length < 6) { err.textContent = '❌ Password must be at least 6 characters.'; err.style.display = 'block'; return; }
-  if (newP !== conf) { err.textContent = '❌ Passwords do not match.'; err.style.display = 'block'; return; }
-  localStorage.setItem(CRED_KEY, JSON.stringify({ user: newU, pass: newP }));
+function openPwd(){document.getElementById('pc').value='';document.getElementById('pu').value='';document.getElementById('pp').value='';document.getElementById('ppc').value='';document.getElementById('perr').style.display='none';document.getElementById('mPwd').classList.add('open');}
+function closePwd(){document.getElementById('mPwd').classList.remove('open');}
+function savePwd(){
+  const c=getCreds();
+  const pc=document.getElementById('pc').value;
+  const pu=document.getElementById('pu').value.trim();
+  const pp=document.getElementById('pp').value;
+  const ppc=document.getElementById('ppc').value;
+  const e=document.getElementById('perr');
+  if(pc!==c.p){e.textContent='❌ Current password wrong';e.style.display='block';return;}
+  if(!pu){e.textContent='❌ Username cannot be empty';e.style.display='block';return;}
+  if(pp.length<6){e.textContent='❌ Password must be 6+ characters';e.style.display='block';return;}
+  if(pp!==ppc){e.textContent='❌ Passwords do not match';e.style.display='block';return;}
+  localStorage.setItem(CK,JSON.stringify({u:pu,p:pp}));
   closePwd();
-  showToast('✅ Credentials updated!', 'success');
+  toast('✅ Login credentials updated!','ok');
 }
 
-// ── APP INIT ──
-function initApp() {
-  initCalendars();
-  if (isFirebaseConfigured() && initFirebase()) {
-    // Live listener
-    db.ref('records').on('value', snap => {
-      records = snap.val() || {};
-      renderDashboard();
-      renderTable();
-      if (!reminderShown) { showReminderPopup(); reminderShown = true; }
-      scheduleAlarms();
-      document.getElementById('lastUpdated').textContent = 'Updated: ' + new Date().toLocaleTimeString('en-IN');
-    }, err => {
-      setSyncStatus('error');
-      showToast('⚠ Firebase error: ' + err.message, 'error');
-    });
-  } else {
-    // Fallback to localStorage
-    if (!isFirebaseConfigured()) {
-      document.getElementById('setupHint').style.display = 'block';
-      showToast('⚠ Firebase not configured — using local storage', 'warn');
-    }
-    setSyncStatus('error');
-    const saved = JSON.parse(localStorage.getItem('klawtax_records_v2') || '{}');
-    records = saved;
-    renderDashboard();
-    renderTable();
-    showReminderPopup();
-    scheduleAlarms();
+/* ══════════════════════════════════════════
+   SUPABASE — CREATE TABLE IF NOT EXISTS
+   (uses REST API to create table via SQL)
+══════════════════════════════════════════ */
+async function ensureTable(){
+  // Try a select — if table missing, create it
+  const {error} = await sb.from(TABLE).select('id').limit(1);
+  if(error && error.code==='42P01'){
+    // Table doesn't exist — create via RPC (needs SQL function) 
+    // Instead show helpful message
+    setSS('off');
+    toast('⚠ Table not created yet — see setup step below','wn');
+    return false;
   }
+  return true;
 }
 
-function saveLocal() {
-  localStorage.setItem('klawtax_records_v2', JSON.stringify(records));
+/* ══════════════════════════════════════════
+   INIT
+══════════════════════════════════════════ */
+async function initApp(){
+  initCals();
+  setSS('wait');
+
+  // Load all records
+  await loadAll();
+
+  // Real-time subscription
+  sb.channel('clients-changes')
+    .on('postgres_changes',{event:'*',schema:'public',table:TABLE}, payload=>{
+      handleRT(payload);
+    })
+    .subscribe(status=>{
+      if(status==='SUBSCRIBED') setSS('live');
+      else if(status==='CHANNEL_ERROR') setSS('off');
+    });
+
+  if(!remShown){showRem();remShown=true;}
+  schedAlarms();
+  requestNotifPerm();
 }
 
-// ── DATES ──
-function todayStr() { return new Date().toISOString().split('T')[0]; }
-function yesterdayStr() { const d=new Date(); d.setDate(d.getDate()-1); return d.toISOString().split('T')[0]; }
-function weekStartStr() { const d=new Date(); d.setDate(d.getDate()-d.getDay()); return d.toISOString().split('T')[0]; }
-function monthStartStr() { const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-01`; }
-function monthEndStr() { const d=new Date(); const l=new Date(d.getFullYear(),d.getMonth()+1,0); return l.toISOString().split('T')[0]; }
-function nowStr() { return new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true}); }
-
-// ── CALENDARS (Flatpickr) ──
-function initCalendars() {
-  fpFollowup = flatpickr('#f-followup', {
-    dateFormat: 'Y-m-d',
-    disableMobile: false,
-    allowInput: false,
-    minDate: null
-  });
-  fpFrom = flatpickr('#dateFrom', {
-    dateFormat: 'Y-m-d',
-    onChange: () => { document.getElementById('quickDate').value=''; renderTable(); }
-  });
-  fpTo = flatpickr('#dateTo', {
-    dateFormat: 'Y-m-d',
-    onChange: () => { document.getElementById('quickDate').value=''; renderTable(); }
-  });
+async function loadAll(){
+  const {data,error}=await sb.from(TABLE).select('*').order('created_at',{ascending:false});
+  if(error){
+    setSS('off');
+    toast('❌ DB Error: '+error.message+' — Run the SQL setup in Supabase','er');
+    return;
+  }
+  records=data||[];
+  setSS('live');
+  document.getElementById('lastSync').textContent='Synced: '+new Date().toLocaleTimeString('en-IN');
+  renderDash();
+  render();
 }
 
-function clearDateRange() {
-  if(fpFrom) fpFrom.clear();
-  if(fpTo) fpTo.clear();
-  document.getElementById('quickDate').value = '';
-  renderTable();
+function handleRT(payload){
+  const {eventType,new:nw,old}=payload;
+  if(eventType==='INSERT'){records.unshift(nw);}
+  else if(eventType==='UPDATE'){const i=records.findIndex(r=>r.id===nw.id);if(i>-1)records[i]=nw;else records.unshift(nw);}
+  else if(eventType==='DELETE'){records=records.filter(r=>r.id!==old.id);}
+  document.getElementById('lastSync').textContent='Synced: '+new Date().toLocaleTimeString('en-IN');
+  renderDash();
+  render();
+  schedAlarms();
 }
 
-function applyQuickDate() {
-  const v = document.getElementById('quickDate').value;
-  if(fpFrom) fpFrom.clear();
-  if(fpTo) fpTo.clear();
-  smartFilter = 'all';
-  document.querySelectorAll('.filter-btn').forEach(b => { b.className = 'filter-btn'; });
-  document.getElementById('fb-all').className = 'filter-btn active';
-  if (!v) { renderTable(); return; }
-  const td = todayStr(), yd = yesterdayStr(), ws = weekStartStr(), ms = monthStartStr(), me = monthEndStr();
-  if (v==='today') { if(fpFrom)fpFrom.setDate(td); if(fpTo)fpTo.setDate(td); }
-  else if (v==='yesterday') { if(fpFrom)fpFrom.setDate(yd); if(fpTo)fpTo.setDate(yd); }
-  else if (v==='week') { if(fpFrom)fpFrom.setDate(ws); if(fpTo)fpTo.setDate(td); }
-  else if (v==='month') { if(fpFrom)fpFrom.setDate(ms); if(fpTo)fpTo.setDate(me); }
-  else if (v==='overdue') { setFilter('overdue'); return; }
-  renderTable();
+/* ══════════════════════════════════════════
+   SYNC STATUS
+══════════════════════════════════════════ */
+function setSS(s){
+  const d=document.getElementById('syncDot');
+  const l=document.getElementById('syncLbl');
+  if(!d)return;
+  d.className='sync-dot'+(s==='live'?' sync-live':s==='off'?' off':' wait');
+  l.textContent=s==='live'?'Live ✓':s==='off'?'Offline':'Connecting…';
 }
 
-// ── DASHBOARD ──
-function renderDashboard() {
-  const arr = Object.values(records);
-  const td = todayStr();
-  const totalWork = arr.length;
-  const completed = arr.filter(r=>r.work==='Completed').length;
-  const pending = arr.filter(r=>r.work!=='Completed').length;
-  const totalPay = arr.reduce((s,r)=>s+(parseFloat(r.total)||0),0);
-  const received = arr.reduce((s,r)=>s+(parseFloat(r.received)||0),0);
-  const pendingPay = totalPay - received;
-  const todayFu = arr.filter(r=>r.followup===td).length;
-  const overdue = arr.filter(r=>r.followup && r.followup<td).length;
+/* ══════════════════════════════════════════
+   DATES
+══════════════════════════════════════════ */
+const td=()=>new Date().toISOString().split('T')[0];
+const yd=()=>{const d=new Date();d.setDate(d.getDate()-1);return d.toISOString().split('T')[0];};
+const ws=()=>{const d=new Date();d.setDate(d.getDate()-d.getDay());return d.toISOString().split('T')[0];};
+const ms=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-01`;};
+const me=()=>{const d=new Date();return new Date(d.getFullYear(),d.getMonth()+1,0).toISOString().split('T')[0];};
 
-  document.getElementById('dashboard').innerHTML = [
-    {label:'Total Clients',value:totalWork,cls:'accent'},
-    {label:'Work Completed',value:completed,cls:'green'},
-    {label:'Work Pending',value:pending,cls:'red'},
-    {label:'Total Payment',value:'₹'+fmt(totalPay),cls:''},
-    {label:'Received',value:'₹'+fmt(received),cls:'green'},
-    {label:'Pending Pay',value:'₹'+fmt(pendingPay),cls:'red'},
-    {label:"Today's Follow-ups",value:todayFu,cls:'orange'},
-    {label:'Overdue',value:overdue,cls:'red'},
-  ].map(s=>`<div class="stat-card"><div class="stat-label">${s.label}</div><div class="stat-value ${s.cls}">${s.value}</div></div>`).join('');
+function initCals(){
+  fpFU   = flatpickr('#ffu',{dateFormat:'Y-m-d',allowInput:false});
+  fpFrom = flatpickr('#df',{dateFormat:'Y-m-d',onChange:()=>{document.getElementById('qd').value='';render();}});
+  fpTo   = flatpickr('#dt',{dateFormat:'Y-m-d',onChange:()=>{document.getElementById('qd').value='';render();}});
+}
+function clearDates(){if(fpFrom)fpFrom.clear();if(fpTo)fpTo.clear();document.getElementById('qd').value='';render();}
+function quickDate(){
+  const v=document.getElementById('qd').value;
+  if(fpFrom)fpFrom.clear();if(fpTo)fpTo.clear();
+  smartF='all';setFBtns('all');
+  if(!v){render();return;}
+  if(v==='today'){if(fpFrom)fpFrom.setDate(td());if(fpTo)fpTo.setDate(td());}
+  else if(v==='yesterday'){if(fpFrom)fpFrom.setDate(yd());if(fpTo)fpTo.setDate(yd());}
+  else if(v==='week'){if(fpFrom)fpFrom.setDate(ws());if(fpTo)fpTo.setDate(td());}
+  else if(v==='month'){if(fpFrom)fpFrom.setDate(ms());if(fpTo)fpTo.setDate(me());}
+  else if(v==='overdue'){sf('overdue');return;}
+  render();
 }
 
-function fmt(n) { return Number(n||0).toLocaleString('en-IN'); }
+/* ══════════════════════════════════════════
+   DASHBOARD
+══════════════════════════════════════════ */
+function renderDash(){
+  const t=td();
+  const total=records.length;
+  const comp=records.filter(r=>r.work_status==='Completed').length;
+  const pend=records.filter(r=>r.work_status!=='Completed').length;
+  const totalAmt=records.reduce((s,r)=>s+(+r.total_amount||0),0);
+  const recAmt=records.reduce((s,r)=>s+(+r.received_amount||0),0);
+  const pendAmt=totalAmt-recAmt;
+  const todayFU=records.filter(r=>r.followup_date===t).length;
+  const over=records.filter(r=>r.followup_date&&r.followup_date<t).length;
+  document.getElementById('dash').innerHTML=[
+    {l:'Total Clients',v:total,c:'sv-accent'},
+    {l:'Completed',v:comp,c:'sv-green'},
+    {l:'Work Pending',v:pend,c:'sv-red'},
+    {l:'Total Payment',v:'₹'+fmt(totalAmt),c:''},
+    {l:'Received',v:'₹'+fmt(recAmt),c:'sv-green'},
+    {l:'Pending Pay',v:'₹'+fmt(pendAmt),c:'sv-red'},
+    {l:"Today's Follow-ups",v:todayFU,c:'sv-orange'},
+    {l:'Overdue',v:over,c:'sv-red'},
+  ].map(s=>`<div class="stat-card"><div class="stat-label">${s.l}</div><div class="stat-value ${s.c}">${s.v}</div></div>`).join('');
+}
+const fmt=n=>Number(n||0).toLocaleString('en-IN');
 
-// ── SMART FILTER ──
-function setFilter(f) {
-  smartFilter = f;
-  document.querySelectorAll('.filter-btn').forEach(b => b.className='filter-btn');
-  const map = { 'all':'active', 'work-done-pay-pending':'active-red', 'pay-done-work-pending':'active-orange', 'follow-today':'active-yellow', 'overdue':'active-orange', 'done':'active-green' };
-  const btn = document.getElementById('fb-'+f);
-  if(btn) btn.classList.add(map[f]||'active');
-  if(fpFrom)fpFrom.clear();
-  if(fpTo)fpTo.clear();
-  document.getElementById('quickDate').value='';
-  renderTable();
+/* ══════════════════════════════════════════
+   SMART FILTER
+══════════════════════════════════════════ */
+function sf(f){
+  smartF=f;setFBtns(f);
+  if(fpFrom)fpFrom.clear();if(fpTo)fpTo.clear();
+  document.getElementById('qd').value='';
+  render();
+}
+function setFBtns(f){
+  document.querySelectorAll('.fp').forEach(b=>b.className='fp');
+  const map={all:'fa',wdpp:'fr',pdwp:'fo',today:'fy',overdue:'fo',done:'fg'};
+  const btn=document.getElementById('fb-'+f);
+  if(btn)btn.classList.add(map[f]||'fa');
 }
 
-// ── TABLE ──
-function rowCls(r) {
-  const td=todayStr();
-  if(r.work==='Completed'&&r.payment==='Paid') return 'row-green';
-  if(r.followup && r.followup<td) return 'row-orange';
-  if(r.followup===td) return 'row-yellow';
-  if(r.payment==='Pending') return 'row-red';
+/* ══════════════════════════════════════════
+   TABLE RENDER
+══════════════════════════════════════════ */
+function rowCls(r){
+  const t=td();
+  if(r.work_status==='Completed'&&r.payment_status==='Paid') return 'rg';
+  if(r.followup_date&&r.followup_date<t) return 'ro';
+  if(r.followup_date===t) return 'ry';
+  if(r.payment_status==='Pending') return 'rr';
   return '';
 }
-
-function workBadge(w) {
-  if(w==='Completed') return `<span class="badge badge-completed">✓ Completed</span>`;
-  if(w==='In Progress') return `<span class="badge badge-progress">⟳ In Progress</span>`;
-  return `<span class="badge badge-work-pending">⏳ Pending</span>`;
+function wBadge(w){
+  if(w==='Completed') return `<span class="badge b-completed">✓ Completed</span>`;
+  if(w==='In Progress') return `<span class="badge b-progress">⟳ In Progress</span>`;
+  return `<span class="badge b-pending">⏳ Pending</span>`;
+}
+function pBadge(p){
+  if(p==='Paid') return `<span class="badge b-paid">✓ Paid</span>`;
+  if(p==='Partial') return `<span class="badge b-partial">½ Partial</span>`;
+  return `<span class="badge b-ppending">⚠ Pending</span>`;
+}
+function fuDisp(r){
+  const t=td();
+  if(!r.followup_date) return '<span class="fu-norm">—</span>';
+  const tm=r.reminder_time?`<div class="fu-time">⏰ ${r.reminder_time}</div>`:'';
+  if(r.followup_date<t) return `<span class="fu-over">⚠ ${r.followup_date}</span>${tm}`;
+  if(r.followup_date===t) return `<span class="fu-today">📌 Today</span>${tm}`;
+  return `<span class="fu-norm">${r.followup_date}</span>${tm}`;
 }
 
-function payBadge(p) {
-  if(p==='Paid') return `<span class="badge badge-paid">✓ Paid</span>`;
-  if(p==='Partial') return `<span class="badge badge-partial">½ Partial</span>`;
-  return `<span class="badge badge-pending">⚠ Pending</span>`;
-}
+function render(){
+  let arr=[...records];
+  const t=td(),y=yd();
+  const srch=document.getElementById('srch').value.toLowerCase().trim();
+  const wf=document.getElementById('wf').value;
+  const pf=document.getElementById('pf').value;
+  const from=document.getElementById('df').value;
+  const to=document.getElementById('dt').value;
 
-function fuDisplay(r) {
-  if(!r.followup) return '<span class="followup-normal">—</span>';
-  const td=todayStr(), yd=yesterdayStr();
-  const time = r.reminderTime ? `<div class="followup-time">⏰ ${r.reminderTime}</div>` : '';
-  if(r.followup<td) return `<span class="followup-overdue">⚠ ${r.followup}</span>${time}`;
-  if(r.followup===td) return `<span class="followup-today">📌 Today</span>${time}`;
-  return `<span class="followup-normal">${r.followup}</span>${time}`;
-}
+  if(smartF==='wdpp')       arr=arr.filter(r=>r.work_status==='Completed'&&r.payment_status!=='Paid');
+  else if(smartF==='pdwp')  arr=arr.filter(r=>r.payment_status==='Paid'&&r.work_status!=='Completed');
+  else if(smartF==='today') arr=arr.filter(r=>r.followup_date===t);
+  else if(smartF==='overdue')arr=arr.filter(r=>r.followup_date&&r.followup_date<t);
+  else if(smartF==='done')  arr=arr.filter(r=>r.work_status==='Completed'&&r.payment_status==='Paid');
 
-function renderTable() {
-  let arr = Object.entries(records).map(([id,r])=>({...r,id}));
-  const td=todayStr(), yd=yesterdayStr();
-  const search = document.getElementById('searchInput').value.toLowerCase().trim();
-  const workF = document.getElementById('workFilter').value;
-  const payF = document.getElementById('payFilter').value;
-  const fromD = document.getElementById('dateFrom').value;
-  const toD = document.getElementById('dateTo').value;
+  if(srch) arr=arr.filter(r=>(r.name||'').toLowerCase().includes(srch)||(r.phone||'').toLowerCase().includes(srch)||(r.service||'').toLowerCase().includes(srch));
+  if(wf)   arr=arr.filter(r=>r.work_status===wf);
+  if(pf)   arr=arr.filter(r=>r.payment_status===pf);
+  if(from) arr=arr.filter(r=>r.followup_date&&r.followup_date>=from);
+  if(to)   arr=arr.filter(r=>r.followup_date&&r.followup_date<=to);
 
-  // Smart filter
-  if(smartFilter==='work-done-pay-pending') arr=arr.filter(r=>r.work==='Completed'&&r.payment!=='Paid');
-  else if(smartFilter==='pay-done-work-pending') arr=arr.filter(r=>r.payment==='Paid'&&r.work!=='Completed');
-  else if(smartFilter==='follow-today') arr=arr.filter(r=>r.followup===td);
-  else if(smartFilter==='overdue') arr=arr.filter(r=>r.followup&&r.followup<td);
-  else if(smartFilter==='done') arr=arr.filter(r=>r.work==='Completed'&&r.payment==='Paid');
+  arr.sort((a,b)=>(a.followup_date||'9999')<(b.followup_date||'9999')?-1:1);
 
-  if(search) arr=arr.filter(r=>(r.name||'').toLowerCase().includes(search)||(r.phone||'').toLowerCase().includes(search)||(r.service||'').toLowerCase().includes(search));
-  if(workF) arr=arr.filter(r=>r.work===workF);
-  if(payF) arr=arr.filter(r=>r.payment===payF);
-  if(fromD) arr=arr.filter(r=>r.followup&&r.followup>=fromD);
-  if(toD) arr=arr.filter(r=>r.followup&&r.followup<=toD);
+  document.getElementById('rc').textContent=`${arr.length} record${arr.length!==1?'s':''}`;
 
-  // Sort: overdue first, today next, then by date
-  arr.sort((a,b)=>{
-    const ad=a.followup||'9999', bd=b.followup||'9999';
-    return ad<bd?-1:ad>bd?1:0;
-  });
-
-  document.getElementById('recordCount').textContent = `${arr.length} record${arr.length!==1?'s':''}`;
-
-  if(arr.length===0){
-    document.getElementById('tableContainer').innerHTML=`<div class="empty-state"><div class="empty-icon">📋</div><h3>No records found</h3><p>Try adjusting filters or add a new client.</p></div>`;
+  if(!arr.length){
+    document.getElementById('tbl').innerHTML=`<div class="empty"><div class="empty-icon">📋</div><p style="color:var(--text2);font-weight:500;">No records found</p><p style="font-size:12px;margin-top:4px;">Adjust filters or add a client</p></div>`;
     return;
   }
 
-  document.getElementById('tableContainer').innerHTML=`
-  <table>
+  document.getElementById('tbl').innerHTML=`<table>
     <thead><tr>
       <th>#</th><th>Client</th>
-      <th class="d-none-sm">Service</th>
-      <th class="d-none-sm">Total</th>
-      <th class="d-none-sm">Received</th>
-      <th>Balance</th>
-      <th>Work</th><th>Payment</th>
-      <th>Follow-up</th>
-      <th>Actions</th>
+      <th class="dn">Service</th>
+      <th class="dn">Total</th>
+      <th class="dn">Received</th>
+      <th>Balance</th><th>Work</th><th>Payment</th><th>Follow-up</th><th>Actions</th>
     </tr></thead>
-    <tbody>
-    ${arr.map((r,i)=>{
-      const bal=(parseFloat(r.total)||0)-(parseFloat(r.received)||0);
-      const rc=rowCls(r);
-      return `<tr class="${rc}">
+    <tbody>${arr.map((r,i)=>{
+      const bal=(+r.total_amount||0)-(+r.received_amount||0);
+      return `<tr class="${rowCls(r)}">
         <td style="color:var(--text3);font-size:11px;">${i+1}</td>
-        <td>
-          <div class="client-name">${esc(r.name)}</div>
-          ${r.phone?`<div class="client-phone">${esc(r.phone)}</div>`:''}
-        </td>
-        <td class="d-none-sm" style="color:var(--text2)">${esc(r.service||'—')}</td>
-        <td class="d-none-sm amount">₹${fmt(r.total||0)}</td>
-        <td class="d-none-sm amount">₹${fmt(r.received||0)}</td>
-        <td class="amount ${bal>0?'balance-red':'balance-zero'}">₹${fmt(bal)}</td>
-        <td>${workBadge(r.work)}</td>
-        <td>${payBadge(r.payment)}</td>
-        <td>${fuDisplay(r)}</td>
-        <td><div class="actions-cell">
-          <button class="btn btn-edit btn-sm" onclick="openModal('${r.id}')">✏</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteRecord('${r.id}')">🗑</button>
+        <td><div class="cn">${esc(r.name)}</div>${r.phone?`<div class="cp">${esc(r.phone)}</div>`:''}</td>
+        <td class="dn" style="color:var(--text2)">${esc(r.service||'—')}</td>
+        <td class="dn amt">₹${fmt(r.total_amount||0)}</td>
+        <td class="dn amt">₹${fmt(r.received_amount||0)}</td>
+        <td class="amt ${bal>0?'bal-r':'bal-g'}">₹${fmt(bal)}</td>
+        <td>${wBadge(r.work_status)}</td>
+        <td>${pBadge(r.payment_status)}</td>
+        <td>${fuDisp(r)}</td>
+        <td><div class="act-cell">
+          <button class="btn btn-edit btn-sm" onclick="openModal(${r.id})">✏</button>
+          <button class="btn btn-danger btn-sm" onclick="delRec(${r.id})">🗑</button>
         </div></td>
       </tr>`;
-    }).join('')}
-    </tbody>
-  </table>`;
+    }).join('')}</tbody></table>`;
+}
+const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+/* ══════════════════════════════════════════
+   ADD / EDIT
+══════════════════════════════════════════ */
+function openModal(id){
+  editId=id||null;
+  const r=id?records.find(x=>x.id===id):null;
+  document.getElementById('mTitle').textContent=r?'Edit Client':'Add Client';
+  document.getElementById('fn').value=r?.name||'';
+  document.getElementById('fph').value=r?.phone||'';
+  document.getElementById('fsv').value=r?.service||'';
+  document.getElementById('ft').value=r?.total_amount||'';
+  document.getElementById('fr').value=r?.received_amount||'';
+  document.getElementById('fw').value=r?.work_status||'Pending';
+  document.getElementById('fpy').value=r?.payment_status||'Pending';
+  document.getElementById('ftm').value=r?.reminder_time||'';
+  document.getElementById('fnt').value=r?.notes||'';
+  if(fpFU){fpFU.clear();if(r?.followup_date)fpFU.setDate(r.followup_date);}
+  calcBal();
+  document.getElementById('mAdd').classList.add('open');
+  setTimeout(()=>document.getElementById('fn').focus(),120);
+}
+function closeModal(){document.getElementById('mAdd').classList.remove('open');editId=null;}
+
+function calcBal(){
+  const t=parseFloat(document.getElementById('ft').value)||0;
+  const r=parseFloat(document.getElementById('fr').value)||0;
+  const b=t-r;
+  const el=document.getElementById('fb');
+  el.textContent='₹'+fmt(b);
+  el.style.color=b>0?'var(--red)':'var(--green)';
 }
 
-function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-
-// ── ADD / EDIT ──
-function openModal(id) {
-  editingId = id || null;
-  const r = id ? records[id] : null;
-  document.getElementById('modalTitle').textContent = r ? 'Edit Client' : 'Add Client';
-  document.getElementById('f-name').value = r?.name || '';
-  document.getElementById('f-phone').value = r?.phone || '';
-  document.getElementById('f-service').value = r?.service || '';
-  document.getElementById('f-total').value = r?.total || '';
-  document.getElementById('f-received').value = r?.received || '';
-  document.getElementById('f-work').value = r?.work || 'Pending';
-  document.getElementById('f-payment').value = r?.payment || 'Pending';
-  document.getElementById('f-time').value = r?.reminderTime || '';
-  document.getElementById('f-notes').value = r?.notes || '';
-  if(fpFollowup) { fpFollowup.clear(); if(r?.followup) fpFollowup.setDate(r.followup); }
-  calcBalance();
-  document.getElementById('modalOverlay').classList.add('open');
-  setTimeout(()=>document.getElementById('f-name').focus(),100);
-}
-
-function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); editingId=null; }
-
-function calcBalance() {
-  const total=parseFloat(document.getElementById('f-total').value)||0;
-  const rec=parseFloat(document.getElementById('f-received').value)||0;
-  const bal=total-rec;
-  const el=document.getElementById('f-balance');
-  el.textContent='₹'+fmt(bal);
-  el.style.color=bal>0?'var(--red)':'var(--green)';
-}
-
-async function saveRecord() {
-  const name = document.getElementById('f-name').value.trim();
-  if(!name){showToast('❌ Client name is required','error');document.getElementById('f-name').focus();return;}
-  const rec = {
+async function saveRec(){
+  const name=document.getElementById('fn').value.trim();
+  if(!name){toast('❌ Client name is required','er');document.getElementById('fn').focus();return;}
+  const payload={
     name,
-    phone: document.getElementById('f-phone').value.trim(),
-    service: document.getElementById('f-service').value.trim(),
-    total: parseFloat(document.getElementById('f-total').value)||0,
-    received: parseFloat(document.getElementById('f-received').value)||0,
-    work: document.getElementById('f-work').value,
-    payment: document.getElementById('f-payment').value,
-    followup: document.getElementById('f-followup').value || '',
-    reminderTime: document.getElementById('f-time').value || '',
-    notes: document.getElementById('f-notes').value.trim(),
-    updatedAt: new Date().toISOString()
+    phone:document.getElementById('fph').value.trim(),
+    service:document.getElementById('fsv').value.trim(),
+    total_amount:parseFloat(document.getElementById('ft').value)||0,
+    received_amount:parseFloat(document.getElementById('fr').value)||0,
+    work_status:document.getElementById('fw').value,
+    payment_status:document.getElementById('fpy').value,
+    followup_date:document.getElementById('ffu').value||null,
+    reminder_time:document.getElementById('ftm').value||null,
+    notes:document.getElementById('fnt').value.trim(),
+    updated_at:new Date().toISOString()
   };
 
-  if(db) {
-    setSyncStatus('syncing');
-    try {
-      if(editingId) {
-        await db.ref('records/'+editingId).update(rec);
-      } else {
-        rec.createdAt = rec.updatedAt;
-        await db.ref('records').push(rec);
-      }
-      // Firebase listener will update records automatically
-    } catch(e) { showToast('❌ Save failed: '+e.message,'error'); setSyncStatus('error'); return; }
+  let err;
+  if(editId){
+    ({error:err}=await sb.from(TABLE).update(payload).eq('id',editId));
   } else {
-    const id = editingId || ('r'+Date.now().toString(36));
-    if(!editingId) rec.createdAt = rec.updatedAt;
-    records[id] = {...(records[id]||{}), ...rec};
-    saveLocal();
-    renderDashboard();
-    renderTable();
+    payload.created_at=payload.updated_at;
+    ({error:err}=await sb.from(TABLE).insert(payload));
   }
+
+  if(err){toast('❌ Save failed: '+err.message,'er');return;}
   closeModal();
-  showToast(editingId ? '✅ Record updated!' : '✅ Client added!','success');
-  scheduleAlarms();
+  toast(editId?'✅ Record updated!':'✅ Client added!','ok');
 }
 
-async function deleteRecord(id) {
-  if(!confirm('Delete this record? Cannot be undone.')) return;
-  if(db) {
-    try { await db.ref('records/'+id).remove(); }
-    catch(e) { showToast('❌ Delete failed: '+e.message,'error'); return; }
-  } else {
-    delete records[id];
-    saveLocal();
-    renderDashboard();
-    renderTable();
-  }
-  showToast('🗑 Record deleted','warn');
+async function delRec(id){
+  if(!confirm('Delete this record? Cannot be undone.'))return;
+  const {error}=await sb.from(TABLE).delete().eq('id',id);
+  if(error){toast('❌ Delete failed: '+error.message,'er');return;}
+  toast('🗑 Record deleted','wn');
 }
 
-// ── REMINDER POPUP ──
-function showReminderPopup() {
-  const td=todayStr();
-  const arr=Object.values(records);
-  const todayList=arr.filter(r=>r.followup===td);
-  const overdueList=arr.filter(r=>r.followup&&r.followup<td);
-  if(!todayList.length&&!overdueList.length) return;
-
+/* ══════════════════════════════════════════
+   REMINDERS
+══════════════════════════════════════════ */
+function showRem(){
+  const t=td();
+  const todayL=records.filter(r=>r.followup_date===t);
+  const overL=records.filter(r=>r.followup_date&&r.followup_date<t);
+  if(!todayL.length&&!overL.length)return;
   let html='';
-  if(todayList.length) {
-    html+=`<div class="reminder-section-title">📌 Today's Follow-ups (${todayList.length})</div>`;
-    html+=todayList.map(r=>`<div class="reminder-item today">
-      <div class="reminder-name">${esc(r.name)}</div>
-      <div class="reminder-detail">${r.service||'—'} · ${r.phone||'—'}${r.reminderTime?' · ⏰ '+r.reminderTime:''}</div>
-    </div>`).join('');
+  if(todayL.length){
+    html+=`<div class="sec-title">📌 Today (${todayL.length})</div>`;
+    html+=todayL.map(r=>`<div class="rem-item rem-today"><div class="rem-name">${esc(r.name)}</div><div class="rem-detail">${r.service||'—'} · ${r.phone||'—'}${r.reminder_time?' · ⏰ '+r.reminder_time:''}</div></div>`).join('');
   }
-  if(overdueList.length) {
-    html+=`<div class="reminder-section-title">⚠ Overdue / Missed (${overdueList.length})</div>`;
-    html+=overdueList.map(r=>`<div class="reminder-item overdue">
-      <div class="reminder-name">${esc(r.name)}</div>
-      <div class="reminder-detail">${r.service||'—'} · Was due: ${r.followup}</div>
-    </div>`).join('');
+  if(overL.length){
+    html+=`<div class="sec-title">⚠ Overdue (${overL.length})</div>`;
+    html+=overL.map(r=>`<div class="rem-item rem-over"><div class="rem-name">${esc(r.name)}</div><div class="rem-detail">${r.service||'—'} · Was due: ${r.followup_date}</div></div>`).join('');
   }
-  document.getElementById('reminderBody').innerHTML=html;
-  document.getElementById('reminderOverlay').classList.add('open');
-
-  // Browser notification
-  if('Notification' in window) {
-    Notification.requestPermission().then(perm=>{
-      if(perm==='granted'&&todayList.length) {
-        new Notification('KlawTax — Follow-ups Today',{
-          body:`You have ${todayList.length} follow-up(s) today!`,
-          icon:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">📋</text></svg>'
-        });
-      }
-    });
+  document.getElementById('remBody').innerHTML=html;
+  document.getElementById('mRem').classList.add('open');
+  if('Notification'in window&&Notification.permission==='granted'&&todayL.length){
+    new Notification('KlawTax — Follow-ups Today',{body:`You have ${todayL.length} follow-up(s) today!`});
   }
 }
+function closeRem(){document.getElementById('mRem').classList.remove('open');}
 
-function closeReminder(){document.getElementById('reminderOverlay').classList.remove('open');}
-
-// ── ALARM / REMINDER AT EXACT TIME ──
-function scheduleAlarms() {
-  alarmTimers.forEach(t=>clearTimeout(t));
-  alarmTimers=[];
-  const arr=Object.entries(records);
-  const td=todayStr();
-  arr.forEach(([id,r])=>{
-    if(!r.followup||!r.reminderTime||r.followup!==td) return;
-    const [hh,mm]=r.reminderTime.split(':').map(Number);
-    const alarmTime=new Date();
-    alarmTime.setHours(hh,mm,0,0);
-    const ms=alarmTime-new Date();
-    if(ms<=0) return; // already past
-    const t=setTimeout(()=>fireAlarm(r),ms);
-    alarmTimers.push(t);
+/* ══════════════════════════════════════════
+   ALARM AT EXACT TIME
+══════════════════════════════════════════ */
+function schedAlarms(){
+  alarmTmrs.forEach(t=>clearTimeout(t));alarmTmrs=[];
+  const t=td();
+  records.forEach(r=>{
+    if(!r.followup_date||!r.reminder_time||r.followup_date!==t)return;
+    const [h,m]=r.reminder_time.split(':').map(Number);
+    const at=new Date();at.setHours(h,m,0,0);
+    const ms=at-new Date();
+    if(ms<=0)return;
+    alarmTmrs.push(setTimeout(()=>fireAlarm(r),ms));
   });
 }
 
-function fireAlarm(r) {
-  // Browser notification
-  if('Notification' in window && Notification.permission==='granted') {
-    new Notification(`⏰ Follow-up Reminder — ${r.name}`,{
-      body:`${r.service||''} · ${r.phone||''}\n${r.notes||''}`,
-      icon:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🔔</text></svg>',
-      requireInteraction:true
-    });
+function fireAlarm(r){
+  if('Notification'in window&&Notification.permission==='granted'){
+    new Notification(`⏰ Reminder: ${r.name}`,{body:`${r.service||''} · ${r.phone||''}`,requireInteraction:true});
   }
-  // In-page banner
-  const banner=document.getElementById('alarmBanner');
-  banner.innerHTML=`<div class="alarm-banner">
-    <div>
-      <div class="alarm-text">⏰ Follow-up Reminder: ${esc(r.name)}</div>
-      <div class="alarm-detail">${r.service||''} · ${r.phone||''} · ${r.reminderTime}</div>
-    </div>
-    <button class="alarm-close" onclick="document.getElementById('alarmBanner').style.display='none'">Dismiss</button>
+  const ab=document.getElementById('alarmBar');
+  ab.innerHTML=`<div class="alarm-bar">
+    <div><div class="alarm-text">⏰ Follow-up: ${esc(r.name)}</div>
+    <div class="alarm-sub">${r.service||''} · ${r.phone||''} · ${r.reminder_time}</div></div>
+    <button class="alarm-dis" onclick="document.getElementById('alarmBar').style.display='none'">Dismiss</button>
   </div>`;
-  banner.style.display='block';
-  // Audio beep
+  ab.style.display='block';
+  beep();
+  setTimeout(()=>{ab.style.display='none';},30000);
+}
+
+function beep(){
   try{
     const ctx=new(window.AudioContext||window.webkitAudioContext)();
-    [0,0.3,0.6].forEach(delay=>{
-      const osc=ctx.createOscillator();
-      const gain=ctx.createGain();
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.frequency.value=880; osc.type='sine';
-      gain.gain.setValueAtTime(0,ctx.currentTime+delay);
-      gain.gain.linearRampToValueAtTime(0.4,ctx.currentTime+delay+0.05);
-      gain.gain.linearRampToValueAtTime(0,ctx.currentTime+delay+0.4);
-      osc.start(ctx.currentTime+delay);
-      osc.stop(ctx.currentTime+delay+0.5);
+    [0,.35,.7].forEach(d=>{
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.connect(g);g.connect(ctx.destination);
+      o.frequency.value=880;o.type='sine';
+      g.gain.setValueAtTime(0,ctx.currentTime+d);
+      g.gain.linearRampToValueAtTime(.4,ctx.currentTime+d+.06);
+      g.gain.linearRampToValueAtTime(0,ctx.currentTime+d+.45);
+      o.start(ctx.currentTime+d);o.stop(ctx.currentTime+d+.5);
     });
   }catch(e){}
-  setTimeout(()=>{ banner.style.display='none'; },30000);
 }
 
-// ── EXPORT CSV ──
-function exportCSV() {
-  const arr=Object.values(records);
-  if(!arr.length){showToast('No records to export','warn');return;}
-  const headers=['Name','Phone','Service','Total','Received','Balance','Work Status','Payment Status','Follow-up Date','Reminder Time','Notes','Created'];
-  const rows=arr.map(r=>{
-    const bal=(parseFloat(r.total)||0)-(parseFloat(r.received)||0);
-    return [r.name,r.phone,r.service,r.total,r.received,bal,r.work,r.payment,r.followup,r.reminderTime,r.notes,r.createdAt||''];
+function requestNotifPerm(){
+  if('Notification'in window&&Notification.permission==='default'){
+    Notification.requestPermission();
+  }
+}
+
+/* ══════════════════════════════════════════
+   EXPORT CSV
+══════════════════════════════════════════ */
+function exportCSV(){
+  if(!records.length){toast('No records to export','wn');return;}
+  const H=['Name','Phone','Service','Total','Received','Balance','Work Status','Payment Status','Follow-up Date','Reminder Time','Notes'];
+  const rows=records.map(r=>{
+    const b=(+r.total_amount||0)-(+r.received_amount||0);
+    return [r.name,r.phone,r.service,r.total_amount,r.received_amount,b,r.work_status,r.payment_status,r.followup_date,r.reminder_time,r.notes];
   });
-  const csv=[headers,...rows].map(row=>row.map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(',')).join('\n');
-  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
-  const url=URL.createObjectURL(blob);
+  const csv=[H,...rows].map(row=>row.map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(',')).join('\n');
   const a=document.createElement('a');
-  a.href=url; a.download=`KlawTax_${todayStr()}.csv`; a.click();
-  URL.revokeObjectURL(url);
-  showToast('✅ CSV exported!','success');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));
+  a.download=`KlawTax_${td()}.csv`;a.click();
+  toast('✅ CSV exported!','ok');
 }
 
-// ── IMPORT ──
-function openImport() { document.getElementById('importOverlay').classList.add('open'); }
-function closeImport() { document.getElementById('importOverlay').classList.remove('open'); document.getElementById('importPreview').innerHTML=''; document.getElementById('importBtn').style.display='none'; importData=[]; }
+/* ══════════════════════════════════════════
+   IMPORT EXCEL
+══════════════════════════════════════════ */
+function openImport(){document.getElementById('impPrev').innerHTML='';document.getElementById('impBtn').style.display='none';impData=[];document.getElementById('fi').value='';document.getElementById('mImp').classList.add('open');}
+function closeImport(){document.getElementById('mImp').classList.remove('open');}
+function dzOver(e){e.preventDefault();document.getElementById('dz').classList.add('drag');}
+function dzLeave(){document.getElementById('dz').classList.remove('drag');}
+function dzDrop(e){e.preventDefault();dzLeave();const f=e.dataTransfer.files[0];if(f)procFile(f);}
+function fileChg(e){const f=e.target.files[0];if(f)procFile(f);}
 
-function dragOver(e) { e.preventDefault(); document.getElementById('dropzone').classList.add('drag'); }
-function dragLeave() { document.getElementById('dropzone').classList.remove('drag'); }
-function dropFile(e) { e.preventDefault(); dragLeave(); const f=e.dataTransfer.files[0]; if(f) processImportFile(f); }
-function handleFile(e) { const f=e.target.files[0]; if(f) processImportFile(f); }
-
-function processImportFile(file) {
+function procFile(file){
   const reader=new FileReader();
   reader.onload=e=>{
     try{
       const wb=XLSX.read(e.target.result,{type:'array'});
       const ws=wb.Sheets[wb.SheetNames[0]];
       const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
-      if(rows.length<2){showToast('File is empty or has no data rows','warn');return;}
-      // Skip header row
-      importData=rows.slice(1).filter(r=>r[0]).map(r=>({
+      if(rows.length<2){toast('File empty or no data rows','wn');return;}
+      impData=rows.slice(1).filter(r=>r[0]).map(r=>({
         name:String(r[0]||'').trim(),
         phone:String(r[1]||'').trim(),
         service:String(r[2]||'').trim(),
-        total:parseFloat(r[3])||0,
-        received:parseFloat(r[4])||0,
-        work:['Pending','In Progress','Completed'].includes(r[5])?r[5]:'Pending',
-        payment:['Pending','Partial','Paid'].includes(r[6])?r[6]:'Pending',
-        followup:String(r[7]||'').trim(),
-        reminderTime:String(r[8]||'').trim(),
+        total_amount:parseFloat(r[3])||0,
+        received_amount:parseFloat(r[4])||0,
+        work_status:['Pending','In Progress','Completed'].includes(r[5])?r[5]:'Pending',
+        payment_status:['Pending','Partial','Paid'].includes(r[6])?r[6]:'Pending',
+        followup_date:String(r[7]||'').trim()||null,
+        reminder_time:String(r[8]||'').trim()||null,
         notes:String(r[9]||'').trim(),
+        created_at:new Date().toISOString(),
+        updated_at:new Date().toISOString()
       })).filter(r=>r.name);
 
-      // Preview
-      const preview=importData.slice(0,5);
-      document.getElementById('importPreview').innerHTML=`
-        <div style="margin-top:12px;font-size:12px;color:var(--text2);margin-bottom:6px;">Preview — ${importData.length} records found (showing first 5):</div>
-        <div class="import-preview table-scroll">
-        <table><thead><tr><th>Name</th><th>Phone</th><th>Service</th><th>Total</th><th>Follow-up</th></tr></thead>
-        <tbody>${preview.map(r=>`<tr><td>${esc(r.name)}</td><td>${esc(r.phone)}</td><td>${esc(r.service)}</td><td>₹${fmt(r.total)}</td><td>${r.followup||'—'}</td></tr>`).join('')}</tbody>
-        </table></div>`;
-      document.getElementById('importBtn').style.display='inline-flex';
-    }catch(err){showToast('❌ Could not read file: '+err.message,'error');}
+      const prev=impData.slice(0,5);
+      document.getElementById('impPrev').innerHTML=`
+        <div style="margin-top:12px;font-size:12px;color:var(--text2);margin-bottom:6px;">Preview — <b>${impData.length} records</b> found (showing first 5):</div>
+        <div class="tscroll"><table><thead><tr><th>Name</th><th>Phone</th><th>Service</th><th>Total</th><th>Follow-up</th></tr></thead>
+        <tbody>${prev.map(r=>`<tr><td>${esc(r.name)}</td><td>${esc(r.phone)}</td><td>${esc(r.service)}</td><td>₹${fmt(r.total_amount)}</td><td>${r.followup_date||'—'}</td></tr>`).join('')}</tbody></table></div>`;
+      document.getElementById('impBtn').style.display='inline-flex';
+    }catch(err){toast('❌ Cannot read file: '+err.message,'er');}
   };
   reader.readAsArrayBuffer(file);
 }
 
-async function doImport() {
-  if(!importData.length) return;
-  let count=0;
-  for(const rec of importData) {
-    rec.createdAt=rec.updatedAt=new Date().toISOString();
-    if(db) {
-      await db.ref('records').push(rec);
-    } else {
-      const id='r'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
-      records[id]=rec;
-    }
-    count++;
-  }
-  if(!db){saveLocal();renderDashboard();renderTable();}
+async function doImport(){
+  if(!impData.length)return;
+  const {error}=await sb.from(TABLE).insert(impData);
+  if(error){toast('❌ Import failed: '+error.message,'er');return;}
   closeImport();
-  showToast(`✅ Imported ${count} records!`,'success');
-  scheduleAlarms();
+  toast(`✅ Imported ${impData.length} records!`,'ok');
 }
 
-// ── TOAST ──
-function showToast(msg,type='') {
+/* ══════════════════════════════════════════
+   TOAST
+══════════════════════════════════════════ */
+function toast(msg,type=''){
   const t=document.createElement('div');
   t.className='toast '+(type||'');
   t.textContent=msg;
@@ -1146,31 +937,57 @@ function showToast(msg,type='') {
   setTimeout(()=>t.remove(),3500);
 }
 
-// ── KEYBOARD / CLICK OUTSIDE ──
+/* ══════════════════════════════════════════
+   KEYBOARD / CLICK OUTSIDE
+══════════════════════════════════════════ */
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){closeModal();closeReminder();closeImport();closePwd();}
-  if(e.key==='Enter'&&document.getElementById('loginScreen').style.display!=='none') doLogin();
+  if(e.key==='Escape'){closeModal();closeRem();closeImport();closePwd();}
+  if(e.key==='Enter'&&document.getElementById('loginScreen').style.display!=='none')doLogin();
 });
-['modalOverlay','reminderOverlay','importOverlay','pwdOverlay'].forEach(id=>{
+['mAdd','mRem','mImp','mPwd'].forEach(id=>{
   document.getElementById(id).addEventListener('click',e=>{
     if(e.target===document.getElementById(id)){
-      if(id==='modalOverlay')closeModal();
-      else if(id==='reminderOverlay')closeReminder();
-      else if(id==='importOverlay')closeImport();
-      else closePwd();
+      ({mAdd:closeModal,mRem:closeRem,mImp:closeImport,mPwd:closePwd}[id])();
     }
   });
 });
-
-// ── REQUEST NOTIFICATION PERMISSION EARLY ──
-if('Notification'in window && Notification.permission==='default') {
-  setTimeout(()=>Notification.requestPermission(),2000);
-}
-
-// ── Check if Firebase is configured, show hint ──
-if(!isFirebaseConfigured()) {
-  document.getElementById('setupHint').style.display='block';
-}
 </script>
+
+<!-- ═══════════════════════════════════════
+     SUPABASE SQL SETUP INSTRUCTIONS
+     (shown only if table missing)
+════════════════════════════════════════ -->
+<!--
+  ══════════════════════════════════════════
+  ONE-TIME SUPABASE TABLE SETUP
+  ══════════════════════════════════════════
+  Go to: https://supabase.com/dashboard/project/kwpzisgwwlxztuxarouw/sql/new
+  Paste and run this SQL:
+
+  create table clients (
+    id               bigint generated always as identity primary key,
+    name             text not null,
+    phone            text,
+    service          text,
+    total_amount     numeric default 0,
+    received_amount  numeric default 0,
+    work_status      text default 'Pending',
+    payment_status   text default 'Pending',
+    followup_date    date,
+    reminder_time    time,
+    notes            text,
+    created_at       timestamptz default now(),
+    updated_at       timestamptz default now()
+  );
+
+  alter table clients enable row level security;
+
+  create policy "Allow all" on clients
+    for all using (true) with check (true);
+
+  alter publication supabase_realtime add table clients;
+
+  ══════════════════════════════════════════
+-->
 </body>
 </html>
